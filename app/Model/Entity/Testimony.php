@@ -34,6 +34,10 @@ class Testimony{
 
             return true;
     }
+
+    public static function getTestimonyById($id){
+        return self::getTestimonies('id = '.$id)->fetchObject(self::class);
+    }
     /**
      * Método responsável por retornar depoimentos
      * @param string $where

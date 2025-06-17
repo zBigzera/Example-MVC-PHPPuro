@@ -1,24 +1,8 @@
 <?php
 
-use \App\Http\Response;
-use \App\Controller\Admin;
+//inclui as rotas 
+include __DIR__.'/admin/home.php';
 
-$obRouter->get('/admin',[
-    function(){
-        return new Response(200, 'Admin');
-    }
-]);
+include __DIR__.'/admin/login.php';
 
-$obRouter->get('/admin/login',[
-    function($request){
-        return new Response(200, Admin\Login::getLogin($request));
-    }
-]);
-
-$obRouter->post('/admin/login',[
-    function($request){
-        // print_r($request->getPostVars());
-        return new Response(200, Admin\Login::setLogin($request));
-    }
-]);
-
+include __DIR__.'/admin/testimonies.php';

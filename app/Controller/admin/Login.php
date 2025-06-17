@@ -4,6 +4,8 @@ namespace App\Controller\Admin;
 use \App\Utils\View;
 use \App\Model\Entity\User;
 use \App\Http\Request;
+Use \App\Session\Admin\Login as SessionAdminlogin;
+Use \App\Controller\Admin\Alert;
 class Login extends Page{
 /**
  * Método responsável por retornar a renderização da págia de login.
@@ -12,9 +14,18 @@ class Login extends Page{
  * @return string
  */
     public static function getLogin($request, $errorMessage = null){
-          $content = View::render('admin/login', [
-        'mensagem' => $errorMessage
+
+
+    $status = !is_null($errorMessage) ? Alert::getError($errorMessage) : '';
+    
+    $content = View::render('admin/login', [
+        'mensagem' => $status
     ]);
+
+   
+    //       $content = View::render('admin/login', [
+    //     'mensagem' => $errorMessage
+    // ]);
 
         return parent::getPage('Login', $content);
     }
@@ -39,8 +50,26 @@ class Login extends Page{
         //verifica a senha do usuário
         if(!password_verify($senha, $obUser->senha)){
             return self::getLogin($request, 'E-mail ou senha inválidos.');
-        }
-        
+        }           
+
+        //cria sa sessão de login
+        SessionAdminlogin::login($obUser);
+
+        //Redireciona para home/admin
+        $request->getRouter()->redirect('/admin/');
+    }
+
+    /**
+     * Método resposável por deslogar o usuário
+     * @param Request $request
+     * @return void
+     */
+    public static function setLogout($request){
+
+        //Destrói a sessão de login
+        SessionAdminLogin::logout();
+
+        $request->getRouter()->redirect('/admin/login');
     }
 
 }
