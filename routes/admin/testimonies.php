@@ -37,3 +37,30 @@ $obRouter->get('/admin/testimonies/{id}/edit',[
         return new Response(200, Admin\Testimony::getEditTestimony($request, $id));
     }
 ]);
+
+$obRouter->post('/admin/testimonies/{id}/edit',[
+     'middlewares' =>[
+        'require-admin-login'
+    ],
+    function($request, $id){
+        return new Response(200, Admin\Testimony::setEditTestimony($request, $id));
+    }
+]);
+
+$obRouter->get('/admin/testimonies/{id}/delete',[
+     'middlewares' =>[
+        'require-admin-login'
+    ],
+    function($request, $id){
+        return new Response(200, Admin\Testimony::getDeleteTestimony($request, $id));
+    }
+]);
+
+$obRouter->post('/admin/testimonies/{id}/delete',[
+     'middlewares' =>[
+        'require-admin-login'
+    ],
+    function($request, $id){
+        return new Response(200, Admin\Testimony::setDeleteTestimony($request, $id));
+    }
+]);

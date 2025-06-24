@@ -85,6 +85,11 @@ class Response{
                 echo $this->content;
                 break;
             }
+
+            case 'application/json':{
+                echo json_encode($this->content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                break;
+            }
         }
     }
 }

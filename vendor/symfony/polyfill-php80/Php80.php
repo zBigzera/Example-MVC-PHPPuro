@@ -18,7 +18,7 @@ namespace Symfony\Polyfill\Php80;
  *
  * @internal
  */
-final class Php80
+1final class Php80
 {
     public static function fdiv(float $dividend, float $divisor): float
     {

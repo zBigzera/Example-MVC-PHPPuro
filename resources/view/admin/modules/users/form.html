@@ -1,6 +1,6 @@
 <h1>{{title}}</h1>
 <hr />
-<a href="{{URL}}/admin/testimonies/">
+<a href="{{URL}}/admin/users/">
   <button type="button" class="btn btn-warning">Voltar</button>
 </a>
 <hr />
@@ -13,8 +13,13 @@
     </div>
 
     <div class="form-group my-3">
-        <label>Mensagem</label>
-        <textarea name="mensagem" class="form-control" rows="5" required>{{mensagem}}</textarea>
+        <label>E-mail</label>
+       <input type="mail" name="email" class="form-control" required value="{{email}}">
+    </div>
+
+     <div class="form-group my-3">
+        <label>Senha</label>
+       <input type="password" name="senha" class="form-control" required value="">
     </div>
     <div class="form-group">
         <button type="submit" class="btn btn-success">Enviar</button>
