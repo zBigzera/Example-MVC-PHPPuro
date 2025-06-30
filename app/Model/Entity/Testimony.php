@@ -34,8 +34,7 @@ class Testimony{
 
             return true;
     }
-
-    public function atualizar(){
+     public function atualizar(){
         return (new Database('depoimentos'))->update('id = '. $this->id,
             [
                 'nome' => $this->nome,
