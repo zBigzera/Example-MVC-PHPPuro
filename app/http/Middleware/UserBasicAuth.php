@@ -36,6 +36,7 @@ class UserBasicAuth{
     private function basicAuth($request){
         //verifica o usuário recebido
         if($obUser = $this->getBasicAuthUser()){
+            $request->user = $obUser;
             return true;
         }
 

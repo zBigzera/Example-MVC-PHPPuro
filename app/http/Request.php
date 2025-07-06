@@ -1,6 +1,8 @@
 <?php
 namespace App\Http;
 
+use App\Http\Router;
+use App\Model\Entity\User as UserModel;
 class Request{
         
     /**
@@ -36,12 +38,19 @@ class Request{
      * Instância do router
      * @var 
      */
-    private $router;
+    private Router $router;
 
     /**
      * Construtor da classe
      * Inicializa os dados da requisição (GET, POST, HEADERS, URI, método HTTP)
      */
+
+    /**
+     * Usuário autenticado
+     * @var UserModel
+     */
+    public UserModel $user;
+  
     public function __construct($router){
         $this->router = $router;
         $this->queryParams = $_GET ?? [];
