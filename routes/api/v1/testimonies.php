@@ -6,7 +6,8 @@ use \App\Controller\Api;
 //listar depoimentos
 $obRouter->get('/api/v1/testimonies', [
     'middlewares' => [
-        'api'
+        'api',
+        'cache'
     ],
 
     function($request){
@@ -16,7 +17,8 @@ $obRouter->get('/api/v1/testimonies', [
 
 $obRouter->get('/api/v1/testimonies/{id}/', [
      'middlewares' => [
-        'api'
+        'api',
+        'cache'
     ],
     function($request, $id){
         return new Response (200, Api\Testimony::getTestimony($request, (int)$id), 'application/json');

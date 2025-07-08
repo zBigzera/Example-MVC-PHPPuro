@@ -10,6 +10,9 @@ $obRouter->get('/',[
 ]);
 
 $obRouter->get('/sobre',[
+    'middlewares' => [
+        'cache'
+    ],
     function(){
         return new Response(200, Pages\About::getAbout());
     }
@@ -23,6 +26,9 @@ $obRouter->get('/depoimentos',[
 
 // Rota de depoimento INSERT
 $obRouter->post('/depoimentos',[
+    'middlewares' => [
+        'cache'
+    ],
     function($request){
         return new Response(200, Pages\Testimony::insertTestimony($request));
     }

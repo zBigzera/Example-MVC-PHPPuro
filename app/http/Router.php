@@ -141,7 +141,7 @@ class Router{
      * Método repsonsável por retornar a URI desconsiderando o prefixo
      * @return string
      */
-    private function getUri(){
+    public function getUri(){
         $uri = $this->request->getUri();
         //Corta a URI
         $xUri = strlen($this->prefix) ? explode($this->prefix,$uri) : [$uri];
