@@ -12,7 +12,7 @@ class Api{
      */
     public static function getDetails($request){
         return [
-            'nome' => 'API - WDEV',
+            'nome' => 'API - BIG',
             'versao' => 'v1.0.0',
             'autor' => 'Otávio Bigogno',
             'email' => 'otaviobigogno37@gmail.com'
