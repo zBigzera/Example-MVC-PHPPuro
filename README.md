@@ -30,5 +30,4 @@ index.php
   - JWT (JSON Web Token)
 - Gerenciamento de cache
 - PHP orientado a objetos
-- Integração com **Twig** para views
 - Organização e boas práticas em PHP puro
