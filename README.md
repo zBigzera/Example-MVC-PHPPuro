@@ -17,6 +17,7 @@ Este projeto é uma implementação simples do padrão MVC (Model-View-Controlle
 - Middlewares personalizados
 - Autenticação de usuários
 - Painel administrativo básico
+- Twig template engine
 - APIs RESTful com autenticação:
   - HTTP Basic Auth
   - JWT (JSON Web Token)
