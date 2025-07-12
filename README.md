@@ -8,14 +8,6 @@ Este projeto é uma implementação simples do padrão MVC (Model-View-Controlle
 - 🔸 **Segunda versão**: adição do **Twig** como template engine para melhorar a organização e reutilização de views.
 - 🔺 **Versão final (main)**: diversas melhorias na estrutura, organização e legibilidade do código (em breve).
 
-## 🗂 Estrutura do Projeto
-/app
-/Controllers
-/Models
-/Views
-/public
-index.php
-
 ## 📚 Conceitos Abordados
 
 - Estrutura MVC (Model-View-Controller)
