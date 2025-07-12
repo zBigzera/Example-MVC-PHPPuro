@@ -1,0 +1,13 @@
+<nav>
+    <ul class="pagination pagination-sm">
+        {% for link in pagination %}
+            {% if link.page == '...' %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% else %}
+                <li class="page-item {% if link.active %}active{% endif %}">
+                    <a href="{{ link.link }}" class="page-link">{{ link.page }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>

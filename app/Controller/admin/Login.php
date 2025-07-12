@@ -18,16 +18,11 @@ class Login extends Page{
 
     $status = !is_null($errorMessage) ? Alert::getError($errorMessage) : '';
     
-    $content = View::render('admin/login', [
-        'mensagem' => $status
-    ]);
+        return View::render('admin/pages/login.twig', [
+            'title' => 'Login',
+            'aviso' => $status
+        ]);
 
-   
-    //       $content = View::render('admin/login', [
-    //     'mensagem' => $errorMessage
-    // ]);
-
-        return parent::getPage('Login', $content);
     }
 
     /**

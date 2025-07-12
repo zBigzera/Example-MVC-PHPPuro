@@ -3,7 +3,6 @@
 namespace App\Controller\Admin;
 
 use App\Http\Request;
-use \App\Utils\View;
 use \App\Model\Entity\User as Entity;
 use \WilliamCosta\DatabaseManager\Pagination;
 
@@ -11,7 +10,6 @@ class User extends Page
 {
     private static function getUserItems($request, &$obPagination)
     {
-        $itens = '';
         $quantidadeTotal = Entity::getUsers(null, null, null, 'COUNT(*) qtd')->fetchObject()->qtd;
 
 
@@ -26,29 +24,27 @@ class User extends Page
         // criando um novo objeto da classe Entity com os dados da linha atual.
         // Cada propriedade pública da classe Entity é preenchida com os valores correspondentes do banco.
         // O loop while continua até que todas as linhas sejam processadas.
+        $itens = [];
         while ($obUser = $results->fetchObject(Entity::class)) {
-            $itens .= View::render("admin/modules/users/item", [
+            $itens[] = [
                 'id' => $obUser->id,
                 'nome' => $obUser->nome,
                 'email' => $obUser->email,
-            ]);
+            ];
         }
-        //   $itens = View::render("admin/modules/users/item",[
-        //     'item' => $results->fetchObject(Entity::class)       ]);
-
 
         return $itens;
     }
     public static function getUsers($request)
     {
 
-        $content = View::render('admin/modules/users/index', [
+        return parent::render('admin/pages/users/index.twig', [
+            'title' => 'Usuários',
             'itens' => self::getUserItems($request, $obPagination),
             'pagination' => parent::getPagination($request, $obPagination),
             'status' => self::getStatus($request)
-        ]);
+        ], 'users');
 
-        return parent::getPanel('Usuários', $content, 'users');
     }
 
     /**
@@ -58,14 +54,12 @@ class User extends Page
      */
     public static function getNewUser($request)
     {
-        $content = View::render('admin/modules/users/form', [
+        return parent::render('admin/pages/users/form.twig', [
             'title' => 'Cadastrar usuário',
             'nome' => '',
             'email' => '',
             'status' => self::getStatus($request)
-        ]);
-
-        return parent::getPanel('Cadastrar usuário', $content, 'users');
+        ], 'users');
     }
 
       /**
@@ -139,14 +133,12 @@ class User extends Page
             $request->getRouter()->redirect('/admin/users');
         }
       
-        $content = View::render('admin/modules/users/form', [
+        return parent::render('admin/pages/users/form.twig', [
             'title' => 'Editar usuário',
             'nome' => $obUser->nome,
             'email'=> $obUser->email,
             'status' => self::getStatus($request)
-        ]);
-
-        return parent::getPanel('Editar usuário', $content, 'users');
+        ], 'users');
     }
 
     /**
@@ -195,12 +187,10 @@ class User extends Page
             $request->getRouter()->redirect('/admin/users');
         }
       
-        $content = View::render('admin/modules/users/delete', [
+        return parent::render('admin/pages/users/delete.twig', [
             'nome' => $obUser->nome,
             'email'=> $obUser->email,
-        ]);
-
-        return parent::getPanel('Excluir usuário', $content, 'users');
+        ], 'users');
     }
 
      /**

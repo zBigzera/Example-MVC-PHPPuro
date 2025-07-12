@@ -6,13 +6,13 @@ use \App\Utils\View;
 class Alert{
    public static function getError($message){
 
-        return View::render('admin/alert/status',[
+        return View::render('admin/components/alert.twig',[
             'tipo' => 'danger',
             'mensagem' => $message
         ]);
     }
     public static function getSuccess($message){
-        return View::render('admin/alert/status',[
+        return View::render('admin/components/alert.twig',[
             'tipo' => 'success',
             'mensagem' => $message
         ]);

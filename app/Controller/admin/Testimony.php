@@ -3,7 +3,6 @@
 namespace App\Controller\Admin;
 
 use App\Http\Request;
-use \App\Utils\View;
 use \App\Model\Entity\Testimony as Entity;
 use \WilliamCosta\DatabaseManager\Pagination;
 
@@ -11,7 +10,6 @@ class Testimony extends Page
 {
     private static function getTestimonyItems($request, &$obPagination)
     {
-        $itens = '';
         $quantidadeTotal = Entity::getTestimonies(null, null, null, 'COUNT(*) qtd')->fetchObject()->qtd;
 
 
@@ -26,30 +24,26 @@ class Testimony extends Page
         // criando um novo objeto da classe Entity com os dados da linha atual.
         // Cada propriedade pública da classe Entity é preenchida com os valores correspondentes do banco.
         // O loop while continua até que todas as linhas sejam processadas.
+        $itens = [];
         while ($obTestimony = $results->fetchObject(Entity::class)) {
-            $itens .= View::render("admin/modules/testimonies/item", [
+            $itens[] = [
                 'id' => $obTestimony->id,
                 'nome' => $obTestimony->nome,
                 'mensagem' => $obTestimony->mensagem,
                 'data' => date("d/m/Y H:i:s", strtotime($obTestimony->data))
-            ]);
+            ];
         }
-        //   $itens = View::render("admin/modules/testimonies/item",[
-        //     'item' => $results->fetchObject(Entity::class)       ]);
-
 
         return $itens;
     }
     public static function getTestimonies($request)
     {
-
-        $content = View::render('admin/modules/testimonies/index', [
+        return parent::render('admin/pages/testimonies/index.twig', [
+            'title' => 'Depoimentos',
             'itens' => self::getTestimonyItems($request, $obPagination),
             'pagination' => parent::getPagination($request, $obPagination),
             'status' => self::getStatus($request)
-        ]);
-
-        return parent::getPanel('Depoimentos', $content, 'testimonies');
+        ], 'testimonies');
     }
 
     /**
@@ -59,14 +53,13 @@ class Testimony extends Page
      */
     public static function getNewTestimony($request)
     {
-        $content = View::render('admin/modules/testimonies/form', [
+        return parent::render('admin/pages/testimonies/form.twig', [
             'title' => 'Cadastrar depoimento',
             'nome' => '',
             'mensagem' => '',
             'status' => ''
-        ]);
+        ], 'testimonies');
 
-        return parent::getPanel('Cadastrar depoimento', $content, 'testimonies');
     }
 
       /**
@@ -129,14 +122,13 @@ class Testimony extends Page
             $request->getRouter()->redirect('/admin/testimonies');
         }
       
-        $content = View::render('admin/modules/testimonies/form', [
+        return parent::render('admin/pages/testimonies/form.twig', [
             'title' => 'Editar depoimento',
             'nome' => $obTestimony->nome,
             'mensagem'=> $obTestimony->mensagem,
             'status' => self::getStatus($request)
-        ]);
+        ], 'testimonies');
 
-        return parent::getPanel('Editar depoimento', $content, 'testimonies');
     }
 
     /**
@@ -180,12 +172,11 @@ class Testimony extends Page
             $request->getRouter()->redirect('/admin/testimonies');
         }
       
-        $content = View::render('admin/modules/testimonies/delete', [
+      return parent::render('admin/pages/testimonies/delete.twig', [
             'nome' => $obTestimony->nome,
             'mensagem'=> $obTestimony->mensagem,
-        ]);
+        ], 'testimonies');
 
-        return parent::getPanel('Excluir depoimento', $content, 'testimonies');
     }
 
      /**

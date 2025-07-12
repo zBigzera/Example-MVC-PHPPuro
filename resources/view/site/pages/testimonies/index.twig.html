@@ -1,0 +1,31 @@
+{% extends 'site/base.twig.html' %}
+
+{%block content %}
+<h1>Depoimentos</h1>
+<hr>
+<section id="testimonies">
+  {% for item in itens %}
+    {% include 'site/pages/testimonies/item.twig.html' with item %}
+  {% endfor %}
+  
+  {% if pagination is not empty %}
+      {% include 'site/components/pagination.twig.html' with pagination %}
+  {% endif %}
+</section>
+<hr>
+
+<h3>Envie seu depoimento</h3>
+<form method="post" action="?page=1">
+  <div class="form-group">
+    <label>Nome</label>
+    <input type="toext" class="form-control" name="nome" required>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Mensagem</label>
+    <textarea class="form-control" rows="5" name="mensagem" required></textarea>
+  </div>
+  <div class="form-group mt-3">
+    <button type="submit" class="btn btn-success">Enviar</button>
+  </div>
+</form>
+{% endblock %}

@@ -4,7 +4,7 @@ namespace App\Model\Entity;
 class Organization {
     public $id = 1;
 
-    public $name = 'DA classe organization';
+    public $name = 'Otávio Bigogno';
 
-    public $description = 'sim@sim';
+    public $description = 'otaviobigogno37@gmail.com';
 }

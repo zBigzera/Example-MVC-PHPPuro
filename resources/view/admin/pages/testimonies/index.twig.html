@@ -1,0 +1,44 @@
+{% extends 'admin/base.twig.html' %} 
+{% block content %}
+<h1>Depoimentos</h1>
+<p>Depoimentos enviados pelos usuários</p>
+<hr />
+<a href="{{URL}}/admin/testimonies/new">
+  <button type="button" class="btn btn-success">Cadastrar depoimentos</button>
+</a>
+<hr /> 
+{{status | raw}}
+<table class="table table-light table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th style="width: 200px">Nome</th>
+      <th>Texto</th>
+      <th>Data</th>
+      <th style="width: 200px">Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    {% for it in itens %}
+    <tr>
+      <td>{{it.id}}</td>
+      <td>{{it.nome}}</td>
+      <td>{{it.mensagem}}</td>
+      <td>{{it.data}}</td>
+      <td>
+        <a href="{{URL}}/admin/testimonies/{{it.id}}/edit">
+          <button type="button" class="btn btn-primary">Editar</button>
+        </a>
+        <a href="{{URL}}/admin/testimonies/{{it.id}}/delete">
+          <button type="button" class="btn btn-danger">Excluir</button>
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if pagination is not empty %} 
+    {% include 'site/components/pagination.twig.html' with pagination %} 
+{% endif %} 
+{% endblock %}

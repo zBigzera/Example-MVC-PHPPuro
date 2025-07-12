@@ -1,0 +1,38 @@
+{% extends 'admin/base.twig.html' %} {% block menu %} {# Apenas para evitar o
+menu aparecer no login #} {% endblock %} {% block content %}
+<div class="d-flex justify-content-center">
+  <div class="card mt-3 text-dark text-center" style="width: 500px">
+    <div class="card-header">
+      <h1>Login</h1>
+    </div>
+    <div class="card-body">
+      <form method="post">
+        <div class="form-group">
+          <label>E-mail</label>
+          <input
+            type="email"
+            name="email"
+            class="form-control"
+            placeholder="Email@teste.com"
+            required
+            autofocus
+          />
+        </div>
+        <div class="form-group my-3">
+          <label>Senha</label>
+          <input
+            type="password"
+            name="password"
+            class="form-control"
+            placeholder="*****"
+            required
+          />
+        </div>
+
+        {{aviso | raw}}
+        <button type="submit" class="btn btn-lg btn-danger">Entrar</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

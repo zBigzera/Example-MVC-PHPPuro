@@ -1,0 +1,29 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container">
+    <a class="navbar-brand" href="{{URL}}/admin">PHPMVC</a>
+
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarContent"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <ul class="navbar-nav me-auto">
+        {% for link in menu %}
+        <li class="nav-item">
+          <a class="nav-link {% if link.current %}active text-danger {% endif %}" href="{{link.link}}">{{link.label}}</a>
+        </li>
+        {% endfor %}
+      </ul>
+      <div class="d-flex">
+        <a href="{{URL}}/admin/logout">
+          <button type="button" class="btn btn-outline-danger">Sair</button>
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
