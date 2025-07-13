@@ -2,7 +2,7 @@
 
 namespace App\Session\Admin;
 
-class Login{
+class AdminLogin{
     /**
      * Método responsável por iniciar a sessão
      * @return void
