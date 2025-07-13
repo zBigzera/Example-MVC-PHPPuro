@@ -4,7 +4,7 @@ namespace App\Controller\Admin;
 use \App\Core\View;
 use \App\Model\Entity\User;
 use \App\Core\Http\Request;
-Use \App\Session\Admin\Login as SessionAdminlogin;
+Use \App\Session\Admin\AdminLogin as SessionAdminlogin;
 Use \App\Controller\Admin\Alert;
 class Login extends Page{
 /**
