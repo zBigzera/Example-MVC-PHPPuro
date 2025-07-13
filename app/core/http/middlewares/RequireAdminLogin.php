@@ -2,7 +2,7 @@
 
 namespace App\Core\Http\Middlewares;
 
-use \App\Session\Admin\Login as SessionAdminlogin;
+use \App\Session\Admin\AdminLogin as SessionAdminlogin;
 class RequireAdminLogin{
 
    /**
