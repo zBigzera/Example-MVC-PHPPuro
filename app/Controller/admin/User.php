@@ -2,7 +2,7 @@
 
 namespace App\Controller\Admin;
 
-use App\Http\Request;
+use App\Core\Http\Request;
 use \App\Model\Entity\User as Entity;
 use \WilliamCosta\DatabaseManager\Pagination;
 
@@ -49,7 +49,7 @@ class User extends Page
 
     /**
      * Método responsável por retornar o formulário de cadastro de um novo usuário
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @return string
      */
     public static function getNewUser($request)
@@ -64,7 +64,7 @@ class User extends Page
 
       /**
      * Método responsável por cadastrar um novo usuário
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      */
     public static function setNewUser($request)
     {
@@ -120,7 +120,7 @@ class User extends Page
     }
      /**
      * Método responsável por retornar o formulário de edição de um usuário
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @param integer $id
      * @return string
      */
@@ -143,7 +143,7 @@ class User extends Page
 
     /**
      * Método responsável por atualizar um usuário
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @param integer $id
      */
      public static function setEditUser($request, $id)
@@ -174,7 +174,7 @@ class User extends Page
 
      /**
      * Método responsável retornar o form de exclusão de um usuário
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @param integer $id
      * @return string
      */
@@ -195,7 +195,7 @@ class User extends Page
 
      /**
      * Método responsável por excluir um usuário
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @param integer $id
      */
      public static function setDeleteUser($request, $id)

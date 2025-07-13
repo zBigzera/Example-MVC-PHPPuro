@@ -2,7 +2,7 @@
 
 namespace App\Controller\site;
 
-use \App\Utils\View;
+use \App\Core\View;
 use \App\Model\Entity\Organization;
 class About extends Page{
     /**

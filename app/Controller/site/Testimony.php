@@ -2,7 +2,7 @@
 
 namespace App\Controller\site;
 
-use \App\Utils\View;
+use \App\Core\View;
 use \App\Model\Entity\Testimony as Entity;
 use \WilliamCosta\DatabaseManager\Pagination;
 class Testimony extends Page{

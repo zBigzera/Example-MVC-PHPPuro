@@ -7,7 +7,7 @@ use WilliamCosta\DatabaseManager\Pagination;
 class Api{
     /**
      * Método responsável por retornar os detalhes da API
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @return array
      */
     public static function getDetails($request){
@@ -21,7 +21,7 @@ class Api{
 
     /**
      * Método responsável por retornar os detalhes da paginação
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @param Pagination $obPagination
      * @return array
      */

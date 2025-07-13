@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Middleware;
-use App\Http\Request;
-use App\Http\Response;
+namespace App\Core\Http\Middlewares;
+use App\Core\Http\Request;
+use App\Core\Http\Response;
 
 class Api{
     /**

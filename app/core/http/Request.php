@@ -1,7 +1,7 @@
 <?php
-namespace App\Http;
+namespace App\Core\Http;
 
-use App\Http\Router;
+use App\Core\Http\Router;
 use App\Model\Entity\User as UserModel;
 class Request{
         

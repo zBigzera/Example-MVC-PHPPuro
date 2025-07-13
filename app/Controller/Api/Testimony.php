@@ -7,7 +7,7 @@ use \WilliamCosta\DatabaseManager\Pagination;
 class Testimony extends Api{
     /**
      * Método responsável por retornar os depoimentos
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @return array
      */
     public static function getTestimonies($request){
@@ -19,7 +19,7 @@ class Testimony extends Api{
 
     /**
      * Método responsável por retornar os detalhes de um depoimento
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @param integer $id
      * @return array
      */
@@ -73,7 +73,7 @@ class Testimony extends Api{
 
     /**
      * Método responsável por cadastrar um novo depoimento
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      */
     public static function setNewTestimony($request){
         $postVars = $request->getPostVars();
@@ -101,7 +101,7 @@ class Testimony extends Api{
 
      /**
      * Método responsável por  alterar um depoimento
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      */
     public static function setEditTestimony($request, $id){
         $postVars = $request->getPostVars();
@@ -138,7 +138,7 @@ class Testimony extends Api{
 
     /**
      * Método responsável por excluir um depoimento
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      */
     public static function setDeleteTestimony($request, $id){
 

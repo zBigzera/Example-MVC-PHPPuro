@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Http\Middleware;
-use App\Http\Request;
-use App\Http\Response;
-use \App\Utils\cache\File as CacheFile;
+namespace App\Core\Http\Middlewares;
+use App\Core\Http\Request;
+use App\Core\Http\Response;
+use App\Core\FileCache as CacheFile;
 
 class Cache{
 
 
     /**
      * Método responsável por verificar se a request atual pode ser cacheada
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @return boolean
      */
     private function isCacheable($request){

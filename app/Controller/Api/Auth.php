@@ -10,7 +10,7 @@ class Auth extends Api{
 
     /**
      * Método responsável por gerar um token JWT
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @return array
      */
     public static function generateToken($request){

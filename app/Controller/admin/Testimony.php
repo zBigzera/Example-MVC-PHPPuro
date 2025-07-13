@@ -2,7 +2,7 @@
 
 namespace App\Controller\Admin;
 
-use App\Http\Request;
+use App\Core\Http\Request;
 use \App\Model\Entity\Testimony as Entity;
 use \WilliamCosta\DatabaseManager\Pagination;
 
@@ -48,7 +48,7 @@ class Testimony extends Page
 
     /**
      * Método responsável por retornar o formulário de cadastro de um novo depoimento
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @return string
      */
     public static function getNewTestimony($request)
@@ -64,7 +64,7 @@ class Testimony extends Page
 
       /**
      * Método responsável por cadastrar um novo depoimento
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      */
     public static function setNewTestimony($request)
     {
@@ -109,7 +109,7 @@ class Testimony extends Page
     }
      /**
      * Método responsável por retornar o formulário de edição de um depoimento
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @param integer $id
      * @return string
      */
@@ -133,7 +133,7 @@ class Testimony extends Page
 
     /**
      * Método responsável por atualizar um depoimento
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @param integer $id
      */
      public static function setEditTestimony($request, $id)
@@ -159,7 +159,7 @@ class Testimony extends Page
 
      /**
      * Método responsável retornar o form de exclusão de um depoimento
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @param integer $id
      * @return string
      */
@@ -181,7 +181,7 @@ class Testimony extends Page
 
      /**
      * Método responsável por excluir um depoimento
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @param integer $id
      */
      public static function setDeleteTestimony($request, $id)

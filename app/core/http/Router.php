@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http;
+namespace App\Core\Http;
 use \Closure;
 use \Exception;
 use \ReflectionFunction;
-use \App\Http\Middleware\Queue as MiddlewareQueue;
+use App\Core\Http\Middlewares\QueueMiddleware as MiddlewareQueue;
 class Router{
 
     /**

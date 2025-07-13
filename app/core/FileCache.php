@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Utils\Cache;
+namespace App\Core;
 
-class File{
+class FileCache{
 
     /**
      * Método responsável por retornar o caminho até o arquivo de cache

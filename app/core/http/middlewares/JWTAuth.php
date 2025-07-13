@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Middleware;
-use App\Http\Request;
-use App\Http\Response;
+namespace App\Core\Http\Middlewares;
+use App\Core\Http\Request;
+use App\Core\Http\Response;
 use \App\Model\Entity\User;
 use \Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -39,7 +39,7 @@ class JWTAuth{
 
     /**
      * Método responsável por validar o acesso via HTTP BASIC AUTH
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      */
     private function Auth($request){
         //verifica o usuário recebido

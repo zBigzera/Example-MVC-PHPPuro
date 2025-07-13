@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Controller\Admin;
-use \App\Utils\View;
+use \App\Core\View;
 use \App\Model\Entity\User;
-use \App\Http\Request;
+use \App\Core\Http\Request;
 Use \App\Session\Admin\Login as SessionAdminlogin;
 Use \App\Controller\Admin\Alert;
 class Login extends Page{

@@ -1,9 +1,9 @@
 <?php
 require __DIR__ . "/../vendor/autoload.php";
 
-use App\Utils\View;
+use \App\Core\View;
 use \WilliamCosta\DatabaseManager\Database;
-use \App\Http\Middleware\Queue as MiddlewareQueue;
+use \App\Core\Http\Middlewares\QueueMiddleware  as MiddlewareQueue;
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__.'/../');
 $dotenv->load();
 
@@ -22,13 +22,13 @@ View::init(['URL' => URL]);
 
 //Define o mapeamento de middlewares
 MiddlewareQueue::setMap([
-    'maintenance' => \App\Http\Middleware\Maintenance::class,
-    'require-admin-logout' => \App\Http\Middleware\RequireAdminLogout::class,
-    'require-admin-login' => \App\Http\Middleware\RequireAdminLogin::class,
-    'api' => \App\Http\Middleware\Api::class,
-    'user-basic-auth' => \App\Http\Middleware\UserBasicAuth::class,
-    'jwt-auth' => \App\Http\Middleware\JWTAuth::class,
-    'cache' => \App\Http\Middleware\Cache::class,
+    'maintenance' => \App\Core\Http\Middlewares\Maintenance::class,
+    'require-admin-logout' => \App\Core\Http\Middlewares\RequireAdminLogout::class,
+    'require-admin-login' => \App\Core\Http\Middlewares\RequireAdminLogin::class,
+    'api' => \App\Core\Http\Middlewares\Api::class,
+    'user-basic-auth' => \App\Core\Http\Middlewares\UserBasicAuth::class,
+    'jwt-auth' => \App\Core\Http\Middlewares\JWTAuth::class,
+    'cache' => \App\Core\Http\Middlewares\Cache::class,
 ]);
 
 //Define o mapeamento de middlewares padrões (em todas as rotas)

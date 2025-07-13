@@ -1,6 +1,6 @@
 <?php
 
-use \App\Http\Response;
+use \App\Core\Http\Response;
 use \App\Controller\Admin;
 $obRouter->get('/admin/users',[
      'middlewares' =>[

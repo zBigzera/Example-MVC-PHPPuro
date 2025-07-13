@@ -7,7 +7,7 @@ use \WilliamCosta\DatabaseManager\Pagination;
 class User extends Api{
     /**
      * Método responsável por retornar os usuários
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @return array
      */
     public static function getUsers($request){
@@ -20,7 +20,7 @@ class User extends Api{
 
     /**
      * Método responsável por retornar o usuário atualmente conectado
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @return array
      */
     public static function getCurrentUser($request){
@@ -36,7 +36,7 @@ class User extends Api{
 
     /**
      * Método responsável por retornar os detalhes de um usuário
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      * @param integer $id
      * @return array
      */
@@ -88,7 +88,7 @@ class User extends Api{
 
     /**
      * Método responsável por cadastrar um novo usuário
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      */
     public static function setNewUser($request){
         $postVars = $request->getPostVars();
@@ -124,7 +124,7 @@ class User extends Api{
 
      /**
      * Método responsável por  alterar um usuário
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      */
     public static function setEditUser($request, $id){
         $postVars = $request->getPostVars();
@@ -166,7 +166,7 @@ class User extends Api{
 
     /**
      * Método responsável por excluir um usuário
-     * @param \App\Http\Request $request
+     * @param \App\Core\Http\Request $request
      */
     public static function setDeleteUser($request, $id){
 

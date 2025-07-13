@@ -2,7 +2,7 @@
 
 namespace App\Controller\site;
 
-use \App\Utils\View;
+use \App\Core\View;
 class Home extends Page{
     /**
      * Método responsável por retornar o conteúdo (view) da home
