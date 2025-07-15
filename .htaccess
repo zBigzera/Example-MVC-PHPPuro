@@ -1,7 +1,19 @@
-#Liga o rewrite
-RewriteEngine on
+RewriteEngine On
 
-#Regra de rewrite tudo para index
+# Bloqueia acesso direto a arquivos PHP, exceto index.php
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_FILENAME} \.php$
+RewriteCond %{REQUEST_FILENAME} !index\.php$
+RewriteRule ^ - [F,L]
+
+# Bloqueia arquivos sensíveis
+<FilesMatch "^(\.env|\.git|composer\.json|composer\.lock|Dockerfile|docker-compose\.yml|\.htaccess)$">
+    Require all denied
+</FilesMatch>
+
+# Permite acesso a arquivos e pastas reais
 RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 
-RewriteRule ^(.*)$ ./index.php [QSA,NC]
+# Redireciona tudo para index.php
+RewriteRule ^ index.php [QSA,L]

@@ -4,33 +4,29 @@ namespace App\Controller\Admin;
 
 use App\Core\Http\Request;
 use \App\Model\Entity\Testimony as Entity;
-use \WilliamCosta\DatabaseManager\Pagination;
+use \App\Core\Database\Pagination;
 
 class Testimony extends Page
 {
     private static function getTestimonyItems($request, &$obPagination)
     {
-        $quantidadeTotal = Entity::getTestimonies(null, null, null, 'COUNT(*) qtd')->fetchObject()->qtd;
-
-
         $queryParams = $request->getQueryParams();
-        $paginaAtual = $queryParams['page'] ?? 1;
+        $paginaAtual = $queryParams["page"] ?? 1;
 
-        $obPagination = new Pagination($quantidadeTotal, $paginaAtual, 5);
-        $results = Entity::getTestimonies(null, 'id DESC', $obPagination->getLimit());
+        $obTestimonyEntity = new Entity();
+        $quantidadeTotal = $obTestimonyEntity->count();
 
-        // Renderiza o item.
-        // O método fetchObject(Entity::class) percorre cada linha retornada do banco,
-        // criando um novo objeto da classe Entity com os dados da linha atual.
-        // Cada propriedade pública da classe Entity é preenchida com os valores correspondentes do banco.
-        // O loop while continua até que todas as linhas sejam processadas.
+        $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
+        $results = $obTestimonyEntity->findAll(null, "id DESC", $obPagination->getLimit());
+
         $itens = [];
-        while ($obTestimony = $results->fetchObject(Entity::class)) {
+        foreach ($results as $testimonyData) {
+            $obTestimony = Entity::hydrate($testimonyData);
             $itens[] = [
-                'id' => $obTestimony->id,
-                'nome' => $obTestimony->nome,
-                'mensagem' => $obTestimony->mensagem,
-                'data' => date("d/m/Y H:i:s", strtotime($obTestimony->data))
+                "id" => $obTestimony->id,
+                "nome" => $obTestimony->nome,
+                "mensagem" => $obTestimony->mensagem,
+                "data" => date("d/m/Y H:i:s", strtotime($obTestimony->data))
             ];
         }
 

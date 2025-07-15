@@ -3,7 +3,7 @@
 namespace App\Controller\Api;
 
 use \App\Model\Entity\User as EntityUser;
-use \WilliamCosta\DatabaseManager\Pagination;
+use \App\Core\Database\Pagination;
 class User extends Api{
     /**
      * Método responsável por retornar os usuários
@@ -63,22 +63,22 @@ class User extends Api{
 
      private static function getUserItems($request, &$obPagination)
     {
-        $itens = [];
-        $quantidadeTotal = EntityUser::getUsers(null, null, null, 'COUNT(*) qtd')->fetchObject()->qtd;
-
-
         $queryParams = $request->getQueryParams();
-        $paginaAtual = $queryParams['page'] ?? 1;
+        $paginaAtual = $queryParams["page"] ?? 1;
 
-        $obPagination = new Pagination($quantidadeTotal, $paginaAtual, 5);
-        $results = EntityUser::getUsers(null, 'id DESC', $obPagination->getLimit());
+        $obUserEntity = new EntityUser();
+        $quantidadeTotal = $obUserEntity->count();
 
-    
-        while ($obUser = $results->fetchObject(EntityUser::class)) {
+        $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
+        $results = $obUserEntity->findAll(null, "id DESC", $obPagination->getLimit());
+
+        $itens = [];
+        foreach ($results as $userData) {
+            $obUser = EntityUser::hydrate($userData);
             $itens[] = [
-                'id' => (int)$obUser->id,
-                'nome' => $obUser->nome,
-                'email' => $obUser->email
+                "id" => (int)$obUser->id,
+                "nome" => $obUser->nome,
+                "email" => $obUser->email
             ];
         }
 
@@ -91,7 +91,7 @@ class User extends Api{
      * @param \App\Core\Http\Request $request
      */
     public static function setNewUser($request){
-        $postVars = $request->getPostVars();
+        $postVars = $request->getQueryParams();
 
         //valida os campos obrigatorios
 
@@ -106,11 +106,12 @@ class User extends Api{
             throw new \Exception("O e-mail '".$postVars['email']."' já esta em uso", 400);
         }
 
-
+  
         $obUser = new EntityUser;
         $obUser->nome = $postVars['nome'];
         $obUser->email = $postVars['email'];
         $obUser->senha = password_hash($postVars['senha'], PASSWORD_DEFAULT);
+    
         $obUser->cadastrar();
 
         //retorna os detalhes do usuário cadastrado
@@ -127,7 +128,7 @@ class User extends Api{
      * @param \App\Core\Http\Request $request
      */
     public static function setEditUser($request, $id){
-        $postVars = $request->getPostVars();
+        $postVars = $request->getQueryParams();
 
         //valida os campos obrigatorios
 

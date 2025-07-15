@@ -46,20 +46,10 @@ class Page{
    
    public static function getPagination($request, $obPagination, $maxPages = 3)
    {
-      $pages = $obPagination->getPages();
+      $pages = $obPagination->getPageRange($maxPages);
 
-      if (count($pages) <= 1)
+      if ($obPagination->getTotalPages() <= 1)
          return null;
-
-      $totalPages = count($pages);
-
-      $currentPage = null;
-      foreach ($pages as $page) {
-         if ($page['current']) {
-            $currentPage = $page['page'];
-            break;
-         }
-      }
 
       $url = $request->getRouter()->getCurrentUrl();
       $queryParams = $request->getQueryParams();
@@ -67,73 +57,68 @@ class Page{
       $pageLinks = [];
 
       $buildLink = function ($pageNum) use ($url, $queryParams) {
-         $queryParams['page'] = $pageNum;
-         return $url . '?' . http_build_query($queryParams);
+         $queryParams["page"] = $pageNum;
+         return $url . "?" . http_build_query($queryParams);
       };
 
       // Voltar <<
-      if ($currentPage > 1) {
+      if ($obPagination->hasPreviousPage()) {
          $pageLinks[] = [
-            'page' => '<<',
-            'link' => $buildLink($currentPage - 1),
-            'active' => false,
+            "page" => "<<",
+            "link" => $buildLink($obPagination->getPreviousPage()),
+            "active" => false,
          ];
       }
 
       // Primeira página
-      $pageLinks[] = [
-         'page' => 1,
-         'link' => $buildLink(1),
-         'active' => $currentPage == 1,
-      ];
-
-      // Intervalo páginas do meio
-      $start = max(2, $currentPage - floor($maxPages / 2));
-      $end = min($totalPages - 1, $start + $maxPages - 1);
-      $start = max(2, $end - $maxPages + 1);
-
-      // Pontinhos antes do meio
-      if ($start > 2) {
+      if (!in_array(1, $pages)) {
          $pageLinks[] = [
-            'page' => '...',
-            'link' => null,
-            'disabled' => true,
+            "page" => 1,
+            "link" => $buildLink(1),
+            "active" => $obPagination->getCurrentPage() == 1,
          ];
+         if ($obPagination->getCurrentPage() > ($maxPages + 1)) {
+            $pageLinks[] = [
+               "page" => "...",
+               "link" => null,
+               "disabled" => true,
+            ];
+         }
       }
 
       // Páginas do meio
-      for ($i = $start; $i <= $end; $i++) {
+      foreach ($pages as $page) {
          $pageLinks[] = [
-            'page' => $i,
-            'link' => $buildLink($i),
-            'active' => $i == $currentPage,
+            "page" => $page,
+            "link" => $buildLink($page),
+            "active" => $page == $obPagination->getCurrentPage(),
          ];
       }
 
       // Pontinhos depois do meio
-      if ($end < $totalPages - 1) {
+      if ($obPagination->getCurrentPage() < ($obPagination->getTotalPages() - $maxPages)) {
          $pageLinks[] = [
-            'page' => '...',
-            'link' => null,
-            'disabled' => true,
+            "page" => "...",
+            "link" => null,
+            "disabled" => true,
          ];
       }
 
       // Última página
-      if ($totalPages > 1) {
+      if (!in_array($obPagination->getTotalPages(), $pages) && $obPagination->getTotalPages() > 1) {
          $pageLinks[] = [
-            'page' => $totalPages,
-            'link' => $buildLink($totalPages),
-            'active' => $currentPage == $totalPages,
+            "page" => $obPagination->getTotalPages(),
+            "link" => $buildLink($obPagination->getTotalPages()),
+            "active" => $obPagination->getCurrentPage() == $obPagination->getTotalPages(),
          ];
       }
 
       // Avançar >>
-      if ($currentPage < $totalPages) {
+      if ($obPagination->hasNextPage()) {
          $pageLinks[] = [
-            'page' => '>>',
-            'link' => $buildLink($currentPage + 1),
-            'active' => false,
+            "page" => ">>",
+            "link" => $buildLink($obPagination->getNextPage()),
+            "active" => false,
          ];
       }
 

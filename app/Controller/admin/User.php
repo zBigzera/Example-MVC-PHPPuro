@@ -4,32 +4,28 @@ namespace App\Controller\Admin;
 
 use App\Core\Http\Request;
 use \App\Model\Entity\User as Entity;
-use \WilliamCosta\DatabaseManager\Pagination;
+use \App\Core\Database\Pagination;
 
 class User extends Page
 {
     private static function getUserItems($request, &$obPagination)
     {
-        $quantidadeTotal = Entity::getUsers(null, null, null, 'COUNT(*) qtd')->fetchObject()->qtd;
-
-
         $queryParams = $request->getQueryParams();
-        $paginaAtual = $queryParams['page'] ?? 1;
+        $paginaAtual = $queryParams["page"] ?? 1;
 
-        $obPagination = new Pagination($quantidadeTotal, $paginaAtual, 5);
-        $results = Entity::getUsers(null, 'id DESC', $obPagination->getLimit());
+        $obUserEntity = new Entity();
+        $quantidadeTotal = $obUserEntity->count();
 
-        // Renderiza o item.
-        // O método fetchObject(Entity::class) percorre cada linha retornada do banco,
-        // criando um novo objeto da classe Entity com os dados da linha atual.
-        // Cada propriedade pública da classe Entity é preenchida com os valores correspondentes do banco.
-        // O loop while continua até que todas as linhas sejam processadas.
+        $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
+        $results = $obUserEntity->findAll(null, "id DESC", $obPagination->getLimit());
+
         $itens = [];
-        while ($obUser = $results->fetchObject(Entity::class)) {
+        foreach ($results as $userData) {
+            $obUser = Entity::hydrate($userData);
             $itens[] = [
-                'id' => $obUser->id,
-                'nome' => $obUser->nome,
-                'email' => $obUser->email,
+                "id" => $obUser->id,
+                "nome" => $obUser->nome,
+                "email" => $obUser->email,
             ];
         }
 

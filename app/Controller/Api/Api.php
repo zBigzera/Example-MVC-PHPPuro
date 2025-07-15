@@ -2,7 +2,7 @@
 
 namespace App\Controller\Api;
 
-use WilliamCosta\DatabaseManager\Pagination;
+use \App\Core\Database\Pagination;
 
 class Api{
     /**
@@ -26,13 +26,14 @@ class Api{
      * @return array
      */
     protected static function getPagination($request, $obPagination){
-        $queryParams = $request->getQueryParams();
 
-        $pages = $obPagination->getPages();
+        $queryParams = $request->getQueryParams();
+        
+        $pages = $obPagination->getTotalPages();
 
         return [
             'currentPage' => isset($queryParams['page']) ? (int)$queryParams['page'] : 1,
-            'totalPages ' => !empty($pages) ? count($pages) : 1
+            'totalPages ' => $pages
         ];
     }
 }

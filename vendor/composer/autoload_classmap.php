@@ -6,19 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'App\\Controller\\Api\\Api' => $baseDir . '/app/Controller/Api/Api.php',
-    'App\\Controller\\Api\\Auth' => $baseDir . '/app/Controller/Api/Auth.php',
-    'App\\Controller\\Api\\Testimony' => $baseDir . '/app/Controller/Api/Testimony.php',
-    'App\\Controller\\Api\\User' => $baseDir . '/app/Controller/Api/User.php',
-    'App\\Controller\\Pages\\About' => $baseDir . '/app/Controller/site/About.php',
-    'App\\Controller\\Pages\\Home' => $baseDir . '/app/Controller/site/Home.php',
-    'App\\Controller\\Pages\\Page' => $baseDir . '/app/Controller/site/Page.php',
-    'App\\Controller\\Pages\\Testimony' => $baseDir . '/app/Controller/site/Testimony.php',
-    'App\\Model\\Entity\\Organization' => $baseDir . '/app/Model/Entity/Organization.php',
-    'App\\Model\\Entity\\Testimony' => $baseDir . '/app/Model/Entity/Testimony.php',
-    'App\\Model\\Entity\\User' => $baseDir . '/app/Model/Entity/User.php',
-    'App\\Session\\Admin\\Login' => $baseDir . '/app/Session/Admin/Login.php',
-    'App\\Utils\\Cache\\File' => $baseDir . '/app/Utils/Cache/File.php',
     'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'Dotenv\\Dotenv' => $vendorDir . '/vlucas/phpdotenv/src/Dotenv.php',
@@ -338,6 +325,4 @@ return array(
     'Twig\\Util\\TemplateDirIterator' => $vendorDir . '/twig/twig/src/Util/TemplateDirIterator.php',
     'UnhandledMatchError' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/UnhandledMatchError.php',
     'ValueError' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
-    'WilliamCosta\\DatabaseManager\\Database' => $vendorDir . '/william-costa/database-manager/src/Database.php',
-    'WilliamCosta\\DatabaseManager\\Pagination' => $vendorDir . '/william-costa/database-manager/src/Pagination.php',
 );

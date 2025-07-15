@@ -3,7 +3,7 @@
 namespace App\Controller\Api;
 
 use \App\Model\Entity\Testimony as EntityTestimony;
-use \WilliamCosta\DatabaseManager\Pagination;
+use \App\Core\Database\Pagination;
 class Testimony extends Api{
     /**
      * Método responsável por retornar os depoimentos
@@ -47,23 +47,23 @@ class Testimony extends Api{
 
      private static function getTestimonyItems($request, &$obPagination)
     {
-        $itens = [];
-        $quantidadeTotal = EntityTestimony::getTestimonies(null, null, null, 'COUNT(*) qtd')->fetchObject()->qtd;
-
-
         $queryParams = $request->getQueryParams();
-        $paginaAtual = $queryParams['page'] ?? 1;
+        $paginaAtual = $queryParams["page"] ?? 1;
 
-        $obPagination = new Pagination($quantidadeTotal, $paginaAtual, 5);
-        $results = EntityTestimony::getTestimonies(null, 'id DESC', $obPagination->getLimit());
+        $obTestimonyEntity = new EntityTestimony();
+        $quantidadeTotal = $obTestimonyEntity->count();
 
-    
-        while ($obTestimony = $results->fetchObject(EntityTestimony::class)) {
+        $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
+        $results = $obTestimonyEntity->findAll(null, "id DESC", $obPagination->getLimit());
+
+        $itens = [];
+        foreach ($results as $testimonyData) {
+            $obTestimony = EntityTestimony::hydrate($testimonyData);
             $itens[] = [
-                'id' => (int)$obTestimony->id,
-                'nome' => $obTestimony->nome,
-                'mensagem' => $obTestimony->mensagem,
-                'data' => $obTestimony->data
+                "id" => (int)$obTestimony->id,
+                "nome" => $obTestimony->nome,
+                "mensagem" => $obTestimony->mensagem,
+                "data" => $obTestimony->data
             ];
         }
 
@@ -76,7 +76,7 @@ class Testimony extends Api{
      * @param \App\Core\Http\Request $request
      */
     public static function setNewTestimony($request){
-        $postVars = $request->getPostVars();
+        $postVars = $request->getQueryParams();
 
         //valida os campos obrigatorios
 
@@ -104,7 +104,7 @@ class Testimony extends Api{
      * @param \App\Core\Http\Request $request
      */
     public static function setEditTestimony($request, $id){
-        $postVars = $request->getPostVars();
+        $postVars = $request->getQueryParams();
 
         //valida os campos obrigatorios
 
