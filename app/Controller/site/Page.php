@@ -2,86 +2,16 @@
 
 namespace App\Controller\site;
 
+use App\Core\Database\Pagination;
+
 class Page
 {
-   public static function getPagination($request, $obPagination, $maxPages = 3)
+   public static function getPagination($request, $obPagination, $maxPages = 7)
    {
-      $pages = $obPagination->getPageRange($maxPages);
-
-      if ($obPagination->getTotalPages() <= 1)
-         return null;
-
+      // URL base da página atual
       $url = $request->getRouter()->getCurrentUrl();
-      $queryParams = $request->getQueryParams();
+      
 
-      $pageLinks = [];
-
-      $buildLink = function ($pageNum) use ($url, $queryParams) {
-         $queryParams["page"] = $pageNum;
-         return $url . "?" . http_build_query($queryParams);
-      };
-
-      // Voltar <<
-      if ($obPagination->hasPreviousPage()) {
-         $pageLinks[] = [
-            "page" => "<<",
-            "link" => $buildLink($obPagination->getPreviousPage()),
-            "active" => false,
-         ];
-      }
-
-      // Primeira página
-      if (!in_array(1, $pages)) {
-         $pageLinks[] = [
-            "page" => 1,
-            "link" => $buildLink(1),
-            "active" => $obPagination->getCurrentPage() == 1,
-         ];
-         if ($obPagination->getCurrentPage() > ($maxPages + 1)) {
-            $pageLinks[] = [
-               "page" => "...",
-               "link" => null,
-               "disabled" => true,
-            ];
-         }
-      }
-
-      // Páginas do meio
-      foreach ($pages as $page) {
-         $pageLinks[] = [
-            "page" => $page,
-            "link" => $buildLink($page),
-            "active" => $page == $obPagination->getCurrentPage(),
-         ];
-      }
-
-      // Pontinhos depois do meio
-      if ($obPagination->getCurrentPage() < ($obPagination->getTotalPages() - $maxPages)) {
-         $pageLinks[] = [
-            "page" => "...",
-            "link" => null,
-            "disabled" => true,
-         ];
-      }
-
-      // Última página
-      if (!in_array($obPagination->getTotalPages(), $pages) && $obPagination->getTotalPages() > 1) {
-         $pageLinks[] = [
-            "page" => $obPagination->getTotalPages(),
-            "link" => $buildLink($obPagination->getTotalPages()),
-            "active" => $obPagination->getCurrentPage() == $obPagination->getTotalPages(),
-         ];
-      }
-
-      // Avançar >>
-      if ($obPagination->hasNextPage()) {
-         $pageLinks[] = [
-            "page" => ">>",
-            "link" => $buildLink($obPagination->getNextPage()),
-            "active" => false,
-         ];
-      }
-
-      return $pageLinks;
+      return $obPagination->getPagination($url, 'page', $maxPages);
    }
 }

@@ -226,5 +226,96 @@ class Pagination
         $separator = strpos($baseUrl, '?') !== false ? '&' : '?';
         return $baseUrl . $separator . $pageParam . '=' . $page;
     }
+
+    /**
+     * Retorna um array com os números das páginas para navegação otimizada.
+     * Exibe sempre a primeira e a última página, links de anterior/próximo,
+     * e um intervalo de páginas ao redor da página atual, com '...' para lacunas.
+     * @param int $range Quantidade de páginas para mostrar de cada lado da atual
+     * @return array
+     */
+      public function getOptimizedPageRange(int $maxVisible = 7): array {
+    if ($this->totalPages <= $maxVisible) {
+        return range(1, $this->totalPages);
+    }
+
+    $pages = [1];
+    $numSlots = $maxVisible - 2;
+
+    $start = max(2, $this->currentPage - floor($numSlots / 2));
+    $end = min($this->totalPages - 1, $start + $numSlots - 1);
+
+    if ($end - $start + 1 < $numSlots) {
+        $start = max(2, $end - $numSlots + 1);
+    }
+
+    if ($start > 2) {
+        $pages[] = '...';
+    }
+
+    for ($i = $start; $i <= $end; $i++) {
+        $pages[] = $i;
+    }
+
+    if ($end < $this->totalPages - 1) {
+        $pages[] = '...';
+    }
+
+    $pages[] = $this->totalPages;
+
+    return $pages;
 }
 
+
+   public function getPagination(string $baseUrl, string $pageParam = 'page', int $maxVisible = 7): array {
+    if ($this->totalPages <= 1) {
+        return [[
+        'page' => 1,
+        'link' => null,
+        'active' => true
+    ]];
+    }
+
+    $pagination = [];
+
+    // Botão << (Anterior)
+    if ($this->hasPreviousPage()) {
+        $pagination[] = [
+            'page' => '<<',
+            'link' => $this->buildUrl($baseUrl, $pageParam, $this->getPreviousPage()),
+            'active' => false
+        ];
+    }
+
+    foreach ($this->getOptimizedPageRange($maxVisible) as $page) {
+        if ($page === '...') {
+            $pagination[] = [
+                'page' => '...',
+                'link' => null,
+                'disabled' => true
+            ];
+        } else {
+            $pagination[] = [
+                'page' => $page,
+                'link' => $this->buildUrl($baseUrl, $pageParam, $page),
+                'active' => $page == $this->currentPage
+            ];
+        }
+    }
+
+    // Botão >> (Próxima)
+    if ($this->hasNextPage()) {
+        $pagination[] = [
+            'page' => '>>',
+            'link' => $this->buildUrl($baseUrl, $pageParam, $this->getNextPage()),
+            'active' => false
+        ];
+    }
+
+    return $pagination;
+}
+
+
+
+
+}
