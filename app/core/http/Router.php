@@ -5,6 +5,7 @@ use \Closure;
 use \Exception;
 use \ReflectionFunction;
 use App\Core\Http\Middlewares\QueueMiddleware as MiddlewareQueue;
+
 class Router{
 
     /**
@@ -18,11 +19,13 @@ class Router{
      * @var string
      */
     private $prefix = '';
+    
     /**
      * Índice de rotas
      * @var array
      */
     private $routes =[];
+    
     /**
      * Instância de Request
      * @var Request
@@ -34,6 +37,13 @@ class Router{
      * @var string
      */
     private $contentType = 'text/html';
+    
+    /**
+     * Middlewares de grupo ativos
+     * @var array
+     */
+    private $groupMiddlewares = [];
+    
     /**
      * Método responsável por inicial a classe
      * @param string $url
@@ -42,9 +52,7 @@ class Router{
         $this->request = new Request($this);
         $this->url = $url;
         $this->setPrefix();
-
     }
-
 
     /**
      * Método responsável por alterar o valor do content type
@@ -54,7 +62,6 @@ class Router{
     public function setContentType($contentType){
         $this->contentType = $contentType;
     }
-
 
     /**
      * Método responsável por definir o prefixo das rotas
@@ -67,24 +74,39 @@ class Router{
         //define prefixo
         $this->prefix = $parseUrl['path'] ?? '';
     }
+    
     /**
      * Método responsável por adicionar uma rota na classe
      * @param string $method
      * @param string $route
-     * @param array $params
-     * @return void
+     * @param array|Closure $params
+     * @return Route
      */
     private function addRoute($method, $route, $params = []){
-        //Validação dos parâmetros
-        foreach($params as $key => $value){
-            if($value instanceof Closure){
-                $params['controller'] = $value;
-                unset($params[$key]);
-                continue;
+        // Se $params for um Closure, converte para o formato esperado
+        if ($params instanceof Closure) {
+            $params = ['controller' => $params];
+        }
+        
+        // Garantir que $params seja um array
+        if (!is_array($params)) {
+            $params = [];
+        }
+        
+        // Se não há controller definido, procura por Closures nos parâmetros
+        if (!isset($params['controller'])) {
+            foreach($params as $key => $value){
+                if($value instanceof Closure){
+                    $params['controller'] = $value;
+                    unset($params[$key]);
+                    break; // Para no primeiro Closure encontrado
+                }
             }
         }
-        //Middlewares da rota
-        $params['middlewares'] = $params['middlewares'] ?? [];
+        
+        //Middlewares da rota (inclui middlewares de grupo)
+        $params['middlewares'] = array_merge($this->groupMiddlewares, $params['middlewares'] ?? []);
+        
         //Variáveis da rota
         $params['variables'] = [];
 
@@ -94,44 +116,88 @@ class Router{
             $route = preg_replace($patternVariable,'(.*?)',$route);
             $params['variables'] = $matches[1];
         }
+        
         //Padrão de validação da URL
-      $patternRoute = '/^' . str_replace('/', '\/', rtrim($route, '/')) . '\/?$' . '/';
+        $patternRoute = '/^' . str_replace('/', '\/', rtrim($route, '/')) . '\/?$' . '/';
 
-
-       //ADiciona a rota dentro da classe
-       $this->routes[$patternRoute][$method] = $params;
+        //Adiciona a rota dentro da classe
+        $this->routes[$patternRoute][$method] = $params;
+        
+        //Retorna uma instância de Route para permitir método fluente
+        return new Route($this, $patternRoute, $method);
     }
+    
+    /**
+     * Método responsável por adicionar middlewares a uma rota específica
+     * @param string $pattern
+     * @param string $method
+     * @param array $middlewares
+     * @return void
+     */
+    public function addMiddlewaresToRoute($pattern, $method, $middlewares) {
+        if (isset($this->routes[$pattern][$method])) {
+            $this->routes[$pattern][$method]['middlewares'] = array_merge(
+                $this->routes[$pattern][$method]['middlewares'],
+                is_array($middlewares) ? $middlewares : [$middlewares]
+            );
+        }
+    }
+    
+    /**
+     * Método responsável por agrupar rotas com middlewares comuns
+     * @param array $middlewares
+     * @param Closure $callback
+     * @return void
+     */
+    public function group($middlewares, Closure $callback) {
+        // Salva os middlewares de grupo atuais
+        $previousGroupMiddlewares = $this->groupMiddlewares;
+        
+        // Adiciona os novos middlewares de grupo
+        $this->groupMiddlewares = array_merge($this->groupMiddlewares, is_array($middlewares) ? $middlewares : [$middlewares]);
+        
+        // Executa o callback com os middlewares de grupo ativos
+        $callback($this);
+        
+        // Restaura os middlewares de grupo anteriores
+        $this->groupMiddlewares = $previousGroupMiddlewares;
+    }
+    
     /**
      * Método responsável por definitir uma rota de GET
      * @param string $route
      * @param mixed $params
+     * @return Route
      */
     public function get($route, $params = []){
         return $this->addRoute('GET', $route, $params);
     }
 
-      /**
+    /**
      * Método responsável por definitir uma rota de POST
      * @param string $route
      * @param mixed $params
+     * @return Route
      */
     public function post($route, $params = []){
         return $this->addRoute('POST', $route, $params);
     }
 
-      /**
+    /**
      * Método responsável por definitir uma rota de PUT
      * @param string $route
      * @param mixed $params
+     * @return Route
      */
     public function put($route, $params = []){
         return $this->addRoute('PUT', $route, $params);
     }
 
-      /**
+    /**
      * Método responsável por definitir uma rota de DELETE
      * @param string $route
      * @param mixed $params
+     * @return Route
      */
     public function delete($route, $params = []){
         return $this->addRoute('DELETE', $route, $params);
@@ -148,8 +214,8 @@ class Router{
 
         //Retorna a URI sem prefixo
         return end($xUri);
-
     }
+    
     /**
      * Método responsável por retornar os dados da rota atual
      * @return array
@@ -162,7 +228,6 @@ class Router{
         $httpMethod = $this->request->getHttpMethod();
 
         //Validar as rotas
-
         foreach($this->routes as $patternRoute=>$methods){
             if(preg_match($patternRoute, $uri, $matches)){
                 //verificar o método
@@ -183,8 +248,8 @@ class Router{
         }
 
         throw new Exception("URL não encontrada", 404);
-
     }
+    
     /**
      * Método responsável por executar a rota atual
      * @return Response
@@ -212,7 +277,6 @@ class Router{
         }catch(Exception $e){
             return new Response($e->getCode(),$this->getErrorMessage($e->getMessage()), $this->contentType);
         }
-
     }
 
     /**
@@ -231,6 +295,7 @@ class Router{
             }
         }
     }
+    
     /**
      * Método responsável por retornar a URL atual
      * @return string
@@ -238,6 +303,7 @@ class Router{
     public function getCurrentUrl(){
         return $this->url.$this->getUri();
     }
+    
     /**
      * Método responsável por redirecionar a URL
      * @param string $route
@@ -247,9 +313,8 @@ class Router{
         $url = $this->url.$route;
        
         //executa o redirect
-
         header('location: '.$url);
         exit;
     }
-    
 }
+

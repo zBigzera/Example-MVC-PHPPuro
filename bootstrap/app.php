@@ -5,6 +5,7 @@ use App\Core\Container;
 use App\Core\Database\DatabaseServiceProvider;
 use App\Core\View;
 use App\Core\Http\Middlewares\QueueMiddleware as MiddlewareQueue;
+use App\Core\Http\Middlewares\Map as Map;
 
 // Carrega as variáveis de ambiente
 $envFile = __DIR__ . "/../.env";
@@ -36,21 +37,14 @@ if ($urlFromEnv) {
 // Inicializa a View com a URL
 View::init(['URL' => URL]);
 
+require __DIR__ . '/../app/core/http/middlewares/Map.php';
+
 // Define o mapeamento de middlewares
-MiddlewareQueue::setMap([
-    'maintenance' => \App\Core\Http\Middlewares\Maintenance::class,
-    'require-admin-logout' => \App\Core\Http\Middlewares\RequireAdminLogout::class,
-    'require-admin-login' => \App\Core\Http\Middlewares\RequireAdminLogin::class,
-    'api' => \App\Core\Http\Middlewares\Api::class,
-    'user-basic-auth' => \App\Core\Http\Middlewares\UserBasicAuth::class,
-    'jwt-auth' => \App\Core\Http\Middlewares\JWTAuth::class,
-    'cache' => \App\Core\Http\Middlewares\Cache::class,
-]);
+MiddlewareQueue::setMap(Map::$middlewares);
 
 // Define o mapeamento de middlewares padrões (em todas as rotas)
-MiddlewareQueue::setDefault([
-    'maintenance'
-]);
+MiddlewareQueue::setDefault(Map::$default);
+
 
 // Retorna o container para uso posterior, se necessário
 return Container::class;

@@ -3,40 +3,33 @@
 use \App\Core\Http\Response;
 use \App\Controller\site;
 
-$obRouter->get('/',[
+$obRouter->get('/', [
     function(){
         return new Response(200, Site\Home::getHome());
     }
 ]);
 
-$obRouter->get('/sobre',[
-    'middlewares' => [
-        'cache'
-    ],
-    function(){
-        return new Response(200, Site\About::getAbout());
-    }
-]);
+$obRouter->group(['cache'], function($obRouter) {
+    $obRouter->get('/sobre', [
+        function(){
+            return new Response(200, Site\About::getAbout());
+        }
+    ]);
+    
+    $obRouter->post('/depoimentos', [
+        function($request){
+            return new Response(200, Site\Testimony::insertTestimony($request));
+        }
+    ]);
+});
 
-$obRouter->get('/depoimentos',[
+$obRouter->get('/depoimentos', [
     function($request){
         return new Response(200, Site\Testimony::getTestimonies($request));
     }
 ]);
 
-// Rota de depoimento INSERT
-$obRouter->post('/depoimentos',[
-    'middlewares' => [
-        'cache'
-    ],
-    function($request){
-        return new Response(200, Site\Testimony::insertTestimony($request));
-    }
-]);
-
-
-
-//Rota dinâmica
+//Rota dinâmica (comentada)
 // $obRouter->get('/pagina/{idPagina}',[
 //     function($idPagina){
 //         return new Response(200, 'Página '.$idPagina);
