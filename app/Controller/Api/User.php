@@ -2,8 +2,8 @@
 
 namespace App\Controller\Api;
 
-use \App\Model\Entity\User as EntityUser;
-use \App\Core\Database\Pagination;
+use App\Model\Entity\User as EntityUser;
+use App\Core\Database\Pagination;
 class User extends Api{
     /**
      * Método responsável por retornar os usuários
@@ -70,7 +70,8 @@ class User extends Api{
         $quantidadeTotal = $obUserEntity->count();
 
         $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
-        $results = $obUserEntity->findAll(null, "id DESC", $obPagination->getLimit());
+
+        $results = $obUserEntity->getUsers(null, "id DESC", $obPagination->getLimit());
 
         $itens = [];
         foreach ($results as $userData) {

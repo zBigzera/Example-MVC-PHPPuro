@@ -14,7 +14,7 @@ class Maintenance{
     public function handle($request, $next){
 
         //verifica o estado de manutenção da página
-        if($_ENV['MAINTENANCE'] === 'true'){
+        if(getenv('MAINTENANCE') == true){
             throw new \Exception("Página em manutenção. tente novamente mais tarde.", 200);
         }
         

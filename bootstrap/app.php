@@ -8,12 +8,10 @@ use App\Core\Http\Middlewares\QueueMiddleware as MiddlewareQueue;
 use App\Core\Http\Middlewares\Map as Map;
 
 // Carrega as variáveis de ambiente
-$envFile = __DIR__ . "/../.env";
+$envFile = require __DIR__ . "/../env.php";
 
-if (file_exists($envFile)) {
-
-    $dotenv = \Dotenv\Dotenv::createImmutable(dirname($envFile));
-    $dotenv->load();
+foreach ($envFile as $key => $value) {
+    putenv("$key=$value");
 }
 
 

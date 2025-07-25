@@ -25,9 +25,25 @@ class Database
      * @param string $table
      * @param PDO|null $connection
      */
-    public function __construct($table = null, PDO $connection = null)
+
+    /**
+     * Última query SQL gerada
+     * @var string
+     */
+    private $lastQuery = "";
+
+    /**
+     * Últimos parâmetros vinculados à query
+     * @var array
+     */
+    private $lastParams = [];
+
+     public function __construct($table = null, ?PDO $connection = null)
     {
-        $this->table = $table;
+        if ($table !== null) {
+            $this->setTable($table);
+        }
+
         $this->connection = $connection;
 
         if (is_null($this->connection)) {
@@ -67,11 +83,21 @@ class Database
      * @param array $params
      * @return PDOStatement
      */
-    public function execute($query, $params = [])
+   public function execute($query, $params = [])
     {
+        // Armazena a última query e parâmetros para depuração
+        $this->lastQuery = $query;
+        $this->lastParams = $params;
+
+        $normalizedParams = [];
+        foreach ($params as $key => $value) {
+            $normalizedKey = str_starts_with($key, ':') ? $key : ':' . $key;
+            $normalizedParams[$normalizedKey] = $value;
+        }
+
         try {
             $statement = $this->connection->prepare($query);
-            $statement->execute($params);
+            $statement->execute($normalizedParams);
             return $statement;
         } catch (PDOException $e) {
             die('ERROR: ' . $e->getMessage());
@@ -83,17 +109,18 @@ class Database
      * @param array $values [ field => value ]
      * @return integer ID inserido
      */
-    public function insert($values)
+     public function insert($values)
     {
         //DADOS DA QUERY
         $fields = array_keys($values);
-        $binds  = array_pad([], count($fields), '?');
+        // Usa placeholders nomeados para inserção
+        $namedPlaceholders = implode(' , ', array_map(fn($field) => ":$field", $fields));
 
         //MONTA A QUERY
-        $query = 'INSERT INTO ' . $this->table . ' (' . implode(',', $fields) . ') VALUES (' . implode(',', $binds) . ')';
+        $query = 'INSERT INTO ' . $this->table . ' (' . implode(' , ', $fields) . ') VALUES (' . $namedPlaceholders . ')';
 
-        //EXECUTA O INSERT
-        $this->execute($query, array_values($values));
+        //EXECUTA O INSERT com array associativo
+        $this->execute($query, $values);
 
         //RETORNA O ID INSERIDO
         return $this->connection->lastInsertId();
@@ -105,52 +132,64 @@ class Database
      * @param string $order
      * @param string $limit
      * @param string $fields
+     * @param array $params
      * @return PDOStatement
      */
-    public function select($where = null, $order = null, $limit = null, $fields = '*')
+    public function select($where = null, $order = null, $limit = null, $fields = '*', $params = [])
     {
-        $where = !empty($where) ? 'WHERE ' . $where : '';
-        $order = !empty($order) ? 'ORDER BY ' . $order : '';
-        $limit = !empty($limit) ? 'LIMIT ' . $limit : '';
+        $whereClause = !empty($where) ? 'WHERE ' . $where : '';
+        $orderClause = !empty($order) ? 'ORDER BY ' . $order : '';
+        $limitClause = !empty($limit) ? 'LIMIT ' . $limit : '';
 
-        $query = 'SELECT ' . $fields . ' FROM ' . $this->table . ' ' . $where . ' ' . $order . ' ' . $limit;
+        $query = 'SELECT ' . $fields . ' FROM ' . $this->table . ' ' . $whereClause . ' ' . $orderClause . ' ' . $limitClause;
 
-        return $this->execute($query);
+        return $this->execute($query, $params);
     }
 
     /**
      * Método responsável por executar atualizações no banco de dados
      * @param string $where
      * @param array $values [ field => value ]
+     * @param array $params
      * @return boolean
      */
-    public function update($where, $values)
+    public function update($where, $values, $params = [])
     {
-        //DADOS DA QUERY
+        // Extrai os campos que serão atualizados
         $fields = array_keys($values);
 
-        //MONTA A QUERY
-        $query = 'UPDATE ' . $this->table . ' SET ' . implode('=?,', $fields) . '=? WHERE ' . $where;
+        // Monta a cláusula SET com placeholders nomeados, evitando conflito com parâmetros do WHERE
+        $setClause = implode(' , ', array_map(fn($field) => "$field = :set_$field", $fields));
 
-        //EXECUTAR A QUERY
-        $this->execute($query, array_values($values));
+        // Monta a query final
+        $query = 'UPDATE ' . $this->table . ' SET ' . $setClause . ' WHERE ' . $where;
 
-        //RETORNA SUCESSO
+        // Renomeia os parâmetros de SET com prefixo "set_" para evitar conflitos com o WHERE
+        $setParams = [];
+        foreach ($values as $k => $v) {
+            $setParams["set_$k"] = $v;
+        }
+
+        // Executa a query com a junção dos parâmetros de SET e WHERE
+        $this->execute($query, array_merge($setParams, $params));
+
+        // Retorna sucesso
         return true;
     }
 
-    /**
+     /**
      * Método responsável por excluir dados do banco
      * @param string $where
+     * @param array $params
      * @return boolean
      */
-    public function delete($where)
+    public function delete($where, $params = [])
     {
         //MONTA A QUERY
         $query = 'DELETE FROM ' . $this->table . ' WHERE ' . $where;
 
         //EXECUTA A QUERY
-        $this->execute($query);
+        $this->execute($query, $params);
 
         //RETORNA SUCESSO
         return true;
@@ -169,8 +208,12 @@ class Database
      * Define a tabela a ser manipulada
      * @param string $table
      */
-    public function setTable($table)
+   public function setTable(string $table)
     {
+        // Proteção contra table injection
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $table)) {
+            throw new \InvalidArgumentException("Invalid table name: $table");
+        }
         $this->table = $table;
     }
 
@@ -208,6 +251,19 @@ class Database
     public function inTransaction()
     {
         return $this->connection->inTransaction();
+    }
+
+     /**
+     * Retorna a última query SQL gerada e seus parâmetros.
+     * Útil para depuração.
+     * @return array ["query" => string, "params" => array]
+     */
+    public function getLastQuery(): array
+    {
+        return [
+            "query" => $this->lastQuery,
+            "params" => $this->lastParams
+        ];
     }
 
 }

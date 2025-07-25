@@ -7,7 +7,7 @@ RewriteCond %{REQUEST_FILENAME} !index\.php$
 RewriteRule ^ - [F,L]
 
 # Bloqueia arquivos sensíveis
-<FilesMatch "^(\.env|\.git|composer\.json|composer\.lock|Dockerfile|docker-compose\.yml|\.htaccess)$">
+<FilesMatch "^(\.env|\.git|composer\.json|composer\.lock|Dockerfile|docker-compose\.yml|\.htaccess|env\.php)$">
     Require all denied
 </FilesMatch>
 

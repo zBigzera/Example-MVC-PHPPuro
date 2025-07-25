@@ -16,7 +16,7 @@ class Cache{
     private function isCacheable($request){
         //valida o tempo de cache
 
-        if($_SERVER['CACHE_TIME'] <= 0){
+        if(getenv('CACHE_TIME') <= 0){
             return false;
         }
 
@@ -70,7 +70,7 @@ class Cache{
         //hash do cache
         $hash = $this->getHash($request);
 
-        return CacheFile::getCache($hash, $_SERVER['CACHE_TIME'], function() use($request, $next){
+        return CacheFile::getCache($hash, getenv('CACHE_TIME'), function() use($request, $next){
            return $next($request);
         });
     }

@@ -2,9 +2,9 @@
 
 namespace App\Controller\Api;
 
-use \App\Model\Entity\User;
+use App\Model\Entity\User;
 
-use \Firebase\JWT\JWT;
+use Firebase\JWT\JWT;
 
 class Auth extends Api{
 
@@ -41,7 +41,7 @@ class Auth extends Api{
 
 
         return[
-            'token' => JWT::encode($payload, $_SERVER['JWT_KEY'], 'HS256'),
+            'token' => JWT::encode($payload, getenv('JWT_KEY'), 'HS256'),
         ];
     }
 }

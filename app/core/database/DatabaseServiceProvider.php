@@ -61,14 +61,16 @@ class DatabaseServiceProvider
      */
     private static function getDatabaseConfig()
     {
-        // Você pode carregar essas configurações de um arquivo .env ou config
+        
         return [
-        'host' => $_ENV['DB_HOST'] ?? 'localhost',
-        'name' => $_ENV['DB_NAME'] ?? 'mvc_pure_php',
-        'user' => $_ENV['DB_USER'] ?? 'root',
-        'pass' => $_ENV['DB_PASS'] ?? '',
-        'port' => $_ENV['DB_PORT'] ?? 3306
+        'host' => getenv('DB_HOST') ?? 'localhost',
+        'name' => getenv('DB_NAME') ?? 'mvc_pure_php',
+        'user' => getenv('DB_USER') ?? 'root',
+        'pass' => getenv('DB_PASS') ?? '',
+        'port' => getenv('DB_PORT') ?? 3306
     ];
+
+    
 
     }
 }

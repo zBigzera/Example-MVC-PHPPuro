@@ -3,8 +3,8 @@
 namespace App\Core\Http\Middlewares;
 use App\Core\Http\Request;
 use App\Core\Http\Response;
-use \App\Model\Entity\User;
-use \Firebase\JWT\JWT;
+use App\Model\Entity\User;
+use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 class JWTAuth{
@@ -23,7 +23,7 @@ class JWTAuth{
         $jwt = isset($headers['Authorization']) ? str_replace('Bearer ', '', $headers['Authorization']) : '';
 
         try{
-            $decoded = JWT::decode($jwt, new Key($_SERVER['JWT_KEY'], 'HS256'));
+            $decoded = JWT::decode($jwt, new Key(getenv('JWT_KEY'), 'HS256'));
         }catch(\Exception $e){
             throw new \Exception("Token inválido",403);
         }

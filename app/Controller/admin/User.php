@@ -3,8 +3,8 @@
 namespace App\Controller\Admin;
 
 use App\Core\Http\Request;
-use \App\Model\Entity\User as Entity;
-use \App\Core\Database\Pagination;
+use App\Model\Entity\User as Entity;
+use App\Core\Database\Pagination;
 
 class User extends Page
 {
@@ -17,7 +17,8 @@ class User extends Page
         $quantidadeTotal = $obUserEntity->count();
 
         $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
-        $results = $obUserEntity->findAll(null, "id DESC", $obPagination->getLimit());
+        
+        $results = $obUserEntity->getUsers(null, "id DESC", $obPagination->getLimit());
 
         $itens = [];
         foreach ($results as $userData) {

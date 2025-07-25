@@ -3,8 +3,8 @@
 namespace App\Controller\Admin;
 
 use App\Core\Http\Request;
-use \App\Model\Entity\Testimony as Entity;
-use \App\Core\Database\Pagination;
+use App\Model\Entity\Testimony as Entity;
+use App\Core\Database\Pagination;
 
 class Testimony extends Page
 {
@@ -17,7 +17,9 @@ class Testimony extends Page
         $quantidadeTotal = $obTestimonyEntity->count();
 
         $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
-        $results = $obTestimonyEntity->findAll(null, "id DESC", $obPagination->getLimit());
+        
+        $results = $obTestimonyEntity->getTestimonies(null, "id DESC", $obPagination->getLimit());
+
 
         $itens = [];
         foreach ($results as $testimonyData) {
