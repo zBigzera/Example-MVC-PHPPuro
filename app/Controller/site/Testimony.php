@@ -5,7 +5,7 @@ namespace App\Controller\site;
 use \App\Core\View;
 use \App\Model\Entity\Testimony as Entity;
 use \App\Core\Database\Pagination;
-class Testimony extends Page{
+class Testimony{
     /**
      * Método responsável por obter a renderização dos itens de depoimentos para a página
      * @return array
@@ -33,23 +33,6 @@ class Testimony extends Page{
         return $itens;
     }
 
-    // private static function getTestimonyItems(){
-    //     $itens = '';
-        
-    //     $results = Entity::getTestimonies(null,'id DESC');
-        
-    //    // Renderiza o item.
-    ////Nao é recomendável utilizar fetchObjetc por limitar (a classe tem que estar igual ao BD)
-    //    $testimoniesArray = $results->fetchAll(\PDO::FETCH_ASSOC);
-
-
-    //     foreach ($testimoniesArray as $data) {
-    //         $itens[] = Entity::fromArray($data);
-    //     }
-
-    //     return $itens;
-    // }
-
     /**
      * Método responsável por retornar o conteúdo (view)
      * @return string
@@ -59,7 +42,7 @@ class Testimony extends Page{
         return View::render("site/pages/testimonies/index.twig",[ 
             'title' => 'Depoimentos',
             'itens' => self::getTestimonyItems($request, $obPagination),
-            'pagination' => parent::getPagination($request,$obPagination),
+            'pagination' => $obPagination->getPagination($request->getFullUrl(),'page')
         ]);
     }
 

@@ -40,7 +40,7 @@ class Pagination
         $this->itemsPerPage = max(1, (int) $itemsPerPage);
         $this->totalItems = max(0, (int) $totalItems);
         $this->totalPages = ceil($this->totalItems / $this->itemsPerPage);
-        
+
         // Ajusta a página atual se for maior que o total de páginas
         if ($this->currentPage > $this->totalPages && $this->totalPages > 0) {
             $this->currentPage = $this->totalPages;
@@ -143,13 +143,6 @@ class Pagination
      * @param int $range Quantidade de páginas para mostrar de cada lado da atual
      * @return array
      */
-    public function getPageRange($range = 2)
-    {
-        $start = max(1, $this->currentPage - $range);
-        $end = min($this->totalPages, $this->currentPage + $range);
-        
-        return range($start, $end);
-    }
 
     /**
      * Retorna informações completas da paginação
@@ -166,53 +159,11 @@ class Pagination
             'has_next' => $this->hasNextPage(),
             'previous_page' => $this->getPreviousPage(),
             'next_page' => $this->getNextPage(),
-            'page_range' => $this->getPageRange(),
             'offset' => $this->getOffset(),
             'limit' => $this->getLimit()
         ];
     }
 
-    /**
-     * Gera HTML para navegação de páginas
-     * @param string $baseUrl URL base para os links
-     * @param string $pageParam Nome do parâmetro da página na URL
-     * @return string
-     */
-    public function generateHtml($baseUrl = '', $pageParam = 'page')
-    {
-        if ($this->totalPages <= 1) {
-            return '';
-        }
-
-        $html = '<nav aria-label="Page navigation"><ul class="pagination">';
-
-        // Link para página anterior
-        if ($this->hasPreviousPage()) {
-            $prevUrl = $this->buildUrl($baseUrl, $pageParam, $this->getPreviousPage());
-            $html .= '<li class="page-item"><a class="page-link" href="' . $prevUrl . '">Anterior</a></li>';
-        } else {
-            $html .= '<li class="page-item disabled"><span class="page-link">Anterior</span></li>';
-        }
-
-        // Links das páginas
-        foreach ($this->getPageRange() as $page) {
-            $pageUrl = $this->buildUrl($baseUrl, $pageParam, $page);
-            $activeClass = $page == $this->currentPage ? ' active' : '';
-            $html .= '<li class="page-item' . $activeClass . '"><a class="page-link" href="' . $pageUrl . '">' . $page . '</a></li>';
-        }
-
-        // Link para próxima página
-        if ($this->hasNextPage()) {
-            $nextUrl = $this->buildUrl($baseUrl, $pageParam, $this->getNextPage());
-            $html .= '<li class="page-item"><a class="page-link" href="' . $nextUrl . '">Próxima</a></li>';
-        } else {
-            $html .= '<li class="page-item disabled"><span class="page-link">Próxima</span></li>';
-        }
-
-        $html .= '</ul></nav>';
-
-        return $html;
-    }
 
     /**
      * Constrói a URL com o parâmetro da página
@@ -221,11 +172,32 @@ class Pagination
      * @param int $page
      * @return string
      */
-    private function buildUrl($baseUrl, $pageParam, $page)
+    private function buildUrl(string $baseUrl, string $pageParam, int|string $page): string
     {
-        $separator = strpos($baseUrl, '?') !== false ? '&' : '?';
-        return $baseUrl . $separator . $pageParam . '=' . $page;
+        // Parseia a URL e seus componentes
+        $urlParts = parse_url($baseUrl);
+
+        // Extrai query params atuais
+        $queryParams = [];
+        if (isset($urlParts['query'])) {
+            parse_str($urlParts['query'], $queryParams);
+        }
+
+        // Atualiza o parâmetro da página
+        $queryParams[$pageParam] = $page;
+
+        // Reconstrói a query string
+        $newQuery = http_build_query($queryParams);
+
+        // Reconstrói a URL com a query atualizada
+        $finalUrl = $urlParts['path'] ?? '';
+        if ($newQuery) {
+            $finalUrl .= '?' . $newQuery;
+        }
+
+        return $finalUrl;
     }
+
 
     /**
      * Retorna um array com os números das páginas para navegação otimizada.
@@ -234,86 +206,90 @@ class Pagination
      * @param int $range Quantidade de páginas para mostrar de cada lado da atual
      * @return array
      */
-      public function getOptimizedPageRange(int $maxVisible = 7): array {
-    if ($this->totalPages <= $maxVisible) {
-        return range(1, $this->totalPages);
+    private function getPageRange(int $maxVisible): array
+    {
+        if ($this->totalPages <= $maxVisible) {
+            return range(1, $this->totalPages);
+        }
+
+        $pages = [1];
+        $numSlots = $maxVisible - 2;
+
+        $start = max(2, $this->currentPage - floor($numSlots / 2));
+        $end = min($this->totalPages - 1, $start + $numSlots - 1);
+
+        if ($end - $start + 1 < $numSlots) {
+            $start = max(2, $end - $numSlots + 1);
+        }
+
+        if ($start > 2) {
+            $pages[] = '...';
+        }
+
+        for ($i = $start; $i <= $end; $i++) {
+            $pages[] = $i;
+        }
+
+        if ($end < $this->totalPages - 1) {
+            $pages[] = '...';
+        }
+
+        $pages[] = $this->totalPages;
+
+        return $pages;
     }
 
-    $pages = [1];
-    $numSlots = $maxVisible - 2;
 
-    $start = max(2, $this->currentPage - floor($numSlots / 2));
-    $end = min($this->totalPages - 1, $start + $numSlots - 1);
-
-    if ($end - $start + 1 < $numSlots) {
-        $start = max(2, $end - $numSlots + 1);
-    }
-
-    if ($start > 2) {
-        $pages[] = '...';
-    }
-
-    for ($i = $start; $i <= $end; $i++) {
-        $pages[] = $i;
-    }
-
-    if ($end < $this->totalPages - 1) {
-        $pages[] = '...';
-    }
-
-    $pages[] = $this->totalPages;
-
-    return $pages;
-}
-
-
-   public function getPagination(string $baseUrl, string $pageParam = 'page', int $maxVisible = 7): array {
-    if ($this->totalPages <= 1) {
-        return [[
-        'page' => 1,
-        'link' => null,
-        'active' => true
-    ]];
-    }
-
-    $pagination = [];
-
-    // Botão << (Anterior)
-    if ($this->hasPreviousPage()) {
-        $pagination[] = [
-            'page' => '<<',
-            'link' => $this->buildUrl($baseUrl, $pageParam, $this->getPreviousPage()),
-            'active' => false
-        ];
-    }
-
-    foreach ($this->getOptimizedPageRange($maxVisible) as $page) {
-        if ($page === '...') {
-            $pagination[] = [
-                'page' => '...',
-                'link' => null,
-                'disabled' => true
-            ];
-        } else {
-            $pagination[] = [
-                'page' => $page,
-                'link' => $this->buildUrl($baseUrl, $pageParam, $page),
-                'active' => $page == $this->currentPage
+    public function getPagination(string $baseUrl, string $pageParam = 'page', int $maxVisible = 7): array
+    {
+        if ($this->totalPages <= 1) {
+            return [
+                [
+                    'page' => 1,
+                    'link' => null,
+                    'active' => true
+                ]
             ];
         }
-    }
 
-    // Botão >> (Próxima)
-    if ($this->hasNextPage()) {
-        $pagination[] = [
-            'page' => '>>',
-            'link' => $this->buildUrl($baseUrl, $pageParam, $this->getNextPage()),
-            'active' => false
-        ];
-    }
+        $pagination = [];
 
-    return $pagination;
-}
+        // Botão << (Anterior)
+        if ($this->hasPreviousPage()) {
+            $pagination[] = [
+                'page' => '<<',
+                'link' => $this->buildUrl($baseUrl, $pageParam, $this->getPreviousPage()),
+                'active' => false
+            ];
+        }
+
+        foreach ($this->getPageRange($maxVisible) as $page) {
+            if ($page === '...') {
+                $pagination[] = [
+                    'page' => '...',
+                    'link' => null,
+                    'disabled' => true
+                ];
+            } else {
+                $pagination[] = [
+                    'page' => $page,
+                    'link' => $this->buildUrl($baseUrl, $pageParam, $page),
+                    'active' => $page == $this->currentPage
+                ];
+            }
+        }
+
+        // Botão >> (Próxima)
+        if ($this->hasNextPage()) {
+            $pagination[] = [
+                'page' => '>>',
+                'link' => $this->buildUrl($baseUrl, $pageParam, $this->getNextPage()),
+                'active' => false
+            ];
+        }
+
+        return $pagination;
+    }
 
 
 

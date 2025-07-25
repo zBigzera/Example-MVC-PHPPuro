@@ -37,7 +37,7 @@ class Testimony extends Page
         return parent::render('admin/pages/testimonies/index.twig', [
             'title' => 'Depoimentos',
             'itens' => self::getTestimonyItems($request, $obPagination),
-            'pagination' => parent::getPagination($request, $obPagination),
+            'pagination' => $obPagination->getPagination($request->getFullUrl(),'page'),
             'status' => self::getStatus($request)
         ], 'testimonies');
     }
