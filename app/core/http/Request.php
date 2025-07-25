@@ -1,10 +1,24 @@
 <?php
 namespace App\Core\Http;
 
+if (!function_exists('getallheaders')) {
+    function getallheaders()
+    {
+        $headers = [];
+        foreach ($_SERVER as $name => $value) {
+            if (str_starts_with($name, 'HTTP_')) {
+                $headers[str_replace('_', '-', substr($name, 5))] = $value;
+            }
+        }
+        return $headers;
+    }
+}
+
 use App\Core\Http\Router;
 use App\Model\Entity\User as UserModel;
-class Request{
-        
+class Request
+{
+
     /**
      * Método HTTP da requisição
      * @var string
@@ -50,24 +64,27 @@ class Request{
      * @var UserModel
      */
     public UserModel $user;
-  
-    public function __construct($router){
+
+    public function __construct($router)
+    {
         $this->router = $router;
         $this->queryParams = $_GET ?? [];
         $this->headers = getallheaders();
         $this->httpMethod = $_SERVER['REQUEST_METHOD'] ?? '';
         $this->setUri();
         $this->setPostVars();
-        
+
     }
 
     /**
      * Método responsável por definir as variáveis do POST
      */
-    private function setPostVars(){
+    private function setPostVars()
+    {
 
-        if($this->httpMethod == 'GET') return false;
-        
+        if ($this->httpMethod == 'GET')
+            return false;
+
         //post padrao
         $this->postVars = $_POST ?? [];
 
@@ -83,18 +100,20 @@ class Request{
      * Método responsável por definir a URI
      * @return void
      */
-    private function setUri(){
+    private function setUri()
+    {
         //url completa (com gets)
         $this->uri = $_SERVER['REQUEST_URI'] ?? '';
-        
-        $xURI = explode('?',$this->uri);
+
+        $xURI = explode('?', $this->uri);
         $this->uri = $xURI[0];
     }
     /**
      * Retorna o método HTTP da requisição
      * @return string
      */
-    public function getHttpMethod(){
+    public function getHttpMethod()
+    {
         return $this->httpMethod;
     }
 
@@ -102,7 +121,8 @@ class Request{
      * Retorna a URI da requisição
      * @return string
      */
-    public function getUri(){
+    public function getUri()
+    {
         return $this->uri;
     }
 
@@ -110,7 +130,8 @@ class Request{
      * Retorna os parâmetros da URL ($_GET)
      * @return array
      */
-    public function getQueryParams(){
+    public function getQueryParams()
+    {
         return $this->queryParams;
     }
 
@@ -118,7 +139,8 @@ class Request{
      * Retorna os dados enviados via POST ($_POST)
      * @return array
      */
-    public function getPostVars(){
+    public function getPostVars()
+    {
         return $this->postVars;
     }
 
@@ -126,12 +148,28 @@ class Request{
      * Retorna os cabeçalhos da requisição
      * @return array
      */
-    public function getHeaders(){
+    public function getHeaders()
+    {
         return $this->headers;
     }
-    
 
-    public function getRouter(){
+
+    public function getRouter()
+    {
         return $this->router;
     }
+
+    public function getCurrentUrl(): string
+    {
+        return $this->router->getCurrentUrl();
+    }
+
+    public function getFullUrl(): string
+    {
+        $base = $this->getCurrentUrl();
+        $query = http_build_query($this->queryParams);
+        return $base . ($query ? '?' . $query : '');
+    }
+
+
 }

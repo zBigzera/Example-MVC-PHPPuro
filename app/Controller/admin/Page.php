@@ -44,11 +44,4 @@ class Page{
     return View::render($view, $vars);
 }
    
-    public static function getPagination($request, $obPagination, $maxPages = 7)
-   {
-      // URL base da página atual
-      $url = $request->getRouter()->getCurrentUrl();
-      
-      return $obPagination->getPagination($url, 'page', $maxPages);
-   }
 }

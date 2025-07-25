@@ -37,7 +37,7 @@ class User extends Page
         return parent::render('admin/pages/users/index.twig', [
             'title' => 'Usuários',
             'itens' => self::getUserItems($request, $obPagination),
-            'pagination' => parent::getPagination($request, $obPagination),
+            'pagination' => $obPagination->getPagination($request->getFullUrl(),'page'),
             'status' => self::getStatus($request)
         ], 'users');
 
