@@ -3,8 +3,8 @@
 namespace App\Controller\Admin;
 
 use App\Core\Http\Request;
-use \App\Model\Entity\User as Entity;
-use \App\Core\Database\Pagination;
+use App\Model\Entity\User as Entity;
+use App\Core\Database\Pagination;
 
 class User extends Page
 {

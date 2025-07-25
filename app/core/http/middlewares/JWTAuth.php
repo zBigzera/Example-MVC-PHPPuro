@@ -3,8 +3,8 @@
 namespace App\Core\Http\Middlewares;
 use App\Core\Http\Request;
 use App\Core\Http\Response;
-use \App\Model\Entity\User;
-use \Firebase\JWT\JWT;
+use App\Model\Entity\User;
+use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 class JWTAuth{

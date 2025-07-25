@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Controller\site;
+namespace App\Controller\Site;
 
-use \App\Core\View;
-use \App\Model\Entity\Testimony as Entity;
-use \App\Core\Database\Pagination;
+use App\Core\View;
+use App\Model\Entity\Testimony as Entity;
+use App\Core\Database\Pagination;
 class Testimony{
     /**
      * Método responsável por obter a renderização dos itens de depoimentos para a página

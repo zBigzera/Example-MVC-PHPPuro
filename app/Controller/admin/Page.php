@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Controller\Admin;
-use \App\Core\View;
+use App\Core\View;
 class Page{
     /**
      * Módulos disponíveis no painel

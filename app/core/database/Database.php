@@ -25,7 +25,8 @@ class Database
      * @param string $table
      * @param PDO|null $connection
      */
-    public function __construct($table = null, PDO $connection = null)
+    
+    public function __construct($table = null, ?PDO $connection = null)
     {
         $this->table = $table;
         $this->connection = $connection;

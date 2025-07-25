@@ -2,8 +2,8 @@
 
 namespace App\Controller\Api;
 
-use \App\Model\Entity\User as EntityUser;
-use \App\Core\Database\Pagination;
+use App\Model\Entity\User as EntityUser;
+use App\Core\Database\Pagination;
 class User extends Api{
     /**
      * Método responsável por retornar os usuários

@@ -2,8 +2,8 @@
 
 namespace App\Controller\Api;
 
-use \App\Model\Entity\Testimony as EntityTestimony;
-use \App\Core\Database\Pagination;
+use App\Model\Entity\Testimony as EntityTestimony;
+use App\Core\Database\Pagination;
 class Testimony extends Api{
     /**
      * Método responsável por retornar os depoimentos

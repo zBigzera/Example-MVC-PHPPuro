@@ -2,7 +2,7 @@
 
 namespace App\Controller\Api;
 
-use \App\Core\Database\Pagination;
+use App\Core\Database\Pagination;
 
 class Api{
     /**

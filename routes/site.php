@@ -1,7 +1,7 @@
 <?php
 
 use \App\Core\Http\Response;
-use \App\Controller\site;
+use \App\Controller\Site;
 
 $obRouter->get('/', [
     function(){

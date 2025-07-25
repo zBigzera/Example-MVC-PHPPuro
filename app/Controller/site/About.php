@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Controller\site;
+namespace App\Controller\Site;
 
-use \App\Core\View;
-use \App\Model\Entity\Organization;
-class About extends Page{
+use App\Core\View;
+use App\Model\Entity\Organization;
+class About{
     /**
      * Método responsável por retornar o conteúdo (view) de sobre
      * @return string

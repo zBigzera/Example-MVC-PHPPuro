@@ -2,9 +2,9 @@
 
 namespace App\Controller\Api;
 
-use \App\Model\Entity\User;
+use App\Model\Entity\User;
 
-use \Firebase\JWT\JWT;
+use Firebase\JWT\JWT;
 
 class Auth extends Api{
 

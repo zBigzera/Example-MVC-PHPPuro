@@ -122,13 +122,16 @@ class Container
                 if ($parameter->isDefaultValueAvailable()) {
                     $dependencies[] = $parameter->getDefaultValue();
                 } else {
-                    throw new Exception("Cannot resolve parameter {$parameter->getName()}");
+                    throw new Exception("Cannot resolve parameter \${$parameter->getName()}");
                 }
-            } else {
+            } elseif ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
                 $className = $type->getName();
                 $dependencies[] = self::resolve($className);
+            } else {
+                throw new Exception("Cannot resolve parameter \${$parameter->getName()} of unsupported type");
             }
         }
+
 
         return $reflector->newInstanceArgs($dependencies);
     }
