@@ -18,7 +18,8 @@ class Testimony{
         $quantidadeTotal = $obTestimonyEntity->count();
 
         $obPagination = new Pagination($paginaAtual, 2, $quantidadeTotal);
-        $results = $obTestimonyEntity->findAll(null, "id DESC", $obPagination->getLimit());
+        
+         $results = $obTestimonyEntity->getTestimonies(null, "id DESC", $obPagination->getLimit());
         
         $itens = [];
         foreach($results as $testimonyData) {
@@ -55,6 +56,6 @@ class Testimony{
         $obTestimony->mensagem = $postVars['mensagem'];
 
         $obTestimony->cadastrar();
-        return self::getTestimonies($request);
+        return $request->getRouter()->redirect('/depoimentos');
     }
 }

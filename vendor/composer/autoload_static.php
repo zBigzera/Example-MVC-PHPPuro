@@ -91,7 +91,6 @@ class ComposerStaticInitface53e785435609499bf6efd16f0baa
         'App\\Core\\Http\\Response' => __DIR__ . '/../..' . '/App/Core/Http/Response.php',
         'App\\Core\\Http\\Route' => __DIR__ . '/../..' . '/App/Core/Http/Route.php',
         'App\\Core\\Http\\Router' => __DIR__ . '/../..' . '/App/Core/Http/Router.php',
-        'App\\Core\\Model' => __DIR__ . '/../..' . '/App/Core/Model.php',
         'App\\Core\\View' => __DIR__ . '/../..' . '/App/Core/View.php',
         'App\\Model\\Entity\\Organization' => __DIR__ . '/../..' . '/App/Model/Entity/Organization.php',
         'App\\Model\\Entity\\Testimony' => __DIR__ . '/../..' . '/App/Model/Entity/Testimony.php',

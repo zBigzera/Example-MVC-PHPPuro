@@ -13,7 +13,7 @@ class View
     {
         $loader = new FilesystemLoader(__DIR__ . '/../../resources/view');
 
-        $isDev = ($_SERVER['ENVIRONMENT'] ?? '') === 'development';
+        $isDev = (getenv('ENVIRONMENT') ?? '') === 'development';
 
         self::$twig = new Environment($loader, [
             'cache' => $isDev ? false : __DIR__ . '/../../cache/twig',

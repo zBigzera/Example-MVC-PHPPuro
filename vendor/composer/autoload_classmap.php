@@ -37,7 +37,6 @@ return array(
     'App\\Core\\Http\\Response' => $baseDir . '/App/Core/Http/Response.php',
     'App\\Core\\Http\\Route' => $baseDir . '/App/Core/Http/Route.php',
     'App\\Core\\Http\\Router' => $baseDir . '/App/Core/Http/Router.php',
-    'App\\Core\\Model' => $baseDir . '/App/Core/Model.php',
     'App\\Core\\View' => $baseDir . '/App/Core/View.php',
     'App\\Model\\Entity\\Organization' => $baseDir . '/App/Model/Entity/Organization.php',
     'App\\Model\\Entity\\Testimony' => $baseDir . '/App/Model/Entity/Testimony.php',

@@ -70,7 +70,8 @@ class User extends Api{
         $quantidadeTotal = $obUserEntity->count();
 
         $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
-        $results = $obUserEntity->findAll(null, "id DESC", $obPagination->getLimit());
+
+        $results = $obUserEntity->getUsers(null, "id DESC", $obPagination->getLimit());
 
         $itens = [];
         foreach ($results as $userData) {

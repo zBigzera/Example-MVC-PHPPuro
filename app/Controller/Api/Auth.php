@@ -41,7 +41,7 @@ class Auth extends Api{
 
 
         return[
-            'token' => JWT::encode($payload, $_SERVER['JWT_KEY'], 'HS256'),
+            'token' => JWT::encode($payload, getenv('JWT_KEY'), 'HS256'),
         ];
     }
 }

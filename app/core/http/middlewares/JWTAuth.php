@@ -23,7 +23,7 @@ class JWTAuth{
         $jwt = isset($headers['Authorization']) ? str_replace('Bearer ', '', $headers['Authorization']) : '';
 
         try{
-            $decoded = JWT::decode($jwt, new Key($_SERVER['JWT_KEY'], 'HS256'));
+            $decoded = JWT::decode($jwt, new Key(getenv('JWT_KEY'), 'HS256'));
         }catch(\Exception $e){
             throw new \Exception("Token inválido",403);
         }
