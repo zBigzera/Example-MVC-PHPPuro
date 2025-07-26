@@ -1,8 +1,7 @@
 <?php
 require __DIR__ . "/../vendor/autoload.php";
 
-use App\Core\Container;
-use App\Core\Database\DatabaseServiceProvider;
+use App\Core\ContainerDI;
 use App\Core\View;
 use App\Core\Http\Middlewares\QueueMiddleware as MiddlewareQueue;
 use App\Core\Http\Middlewares\Map as Map;
@@ -14,9 +13,8 @@ foreach ($envFile as $key => $value) {
     putenv("$key=$value");
 }
 
-
-// Configuração do Database (agora via ServiceProvider)
-DatabaseServiceProvider::register();
+// Cria o container PHP-DI
+$container = ContainerDI::buildContainer();
 
 // Configuração de Timezone
 date_default_timezone_set(getenv("TIMEZONE") ?: 'America/Sao_Paulo');
@@ -45,4 +43,4 @@ MiddlewareQueue::setDefault(Map::$default);
 
 
 // Retorna o container para uso posterior, se necessário
-return Container::class;
+return $container;

@@ -8,12 +8,17 @@ use Firebase\JWT\JWT;
 
 class Auth extends Api{
 
+    private $user;
+
+   public function __construct(User $user) {
+    $this->user = $user;
+   }
     /**
      * Método responsável por gerar um token JWT
      * @param \App\Core\Http\Request $request
      * @return array
      */
-    public static function generateToken($request){
+    public function generateToken($request){
         //post vars
         $postVars = $request->getPostVars();
 
@@ -23,7 +28,7 @@ class Auth extends Api{
             throw new \Exception("Os campos 'email' e 'senha' são obrigatórios",400);
         }
 
-        $obUser = User::getUserByEmail($postVars['email']);
+        $obUser = $this->user->getUserByEmail($postVars['email']);
 
         if(!$obUser instanceof User){
             throw new \Exception("Usuário ou senha inválidos",400);

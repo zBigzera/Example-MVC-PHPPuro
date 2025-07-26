@@ -6,8 +6,12 @@ use App\Core\Http\Response;
 use App\Model\Entity\User;
 
 class UserBasicAuth{
+    
+    private $user;
 
-
+    public function __construct(User $user) {
+        $this->user = $user;
+    }
     /**
      * Método resposnável por retornar uma instância de usuário autenticado
      * @return mixed
@@ -18,7 +22,7 @@ class UserBasicAuth{
             return false;
         }
 
-        $obUser = User::getUserByEmail($_SERVER['PHP_AUTH_USER']);
+        $obUser = $this->user->getUserByEmail($_SERVER['PHP_AUTH_USER']);
 
         //verifica a instância
         if(!$obUser instanceof User){

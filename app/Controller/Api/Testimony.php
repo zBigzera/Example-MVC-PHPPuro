@@ -5,12 +5,19 @@ namespace App\Controller\Api;
 use App\Model\Entity\Testimony as EntityTestimony;
 use App\Core\Database\Pagination;
 class Testimony extends Api{
+
+    private $testimonyEntity;
+
+    public function __construct(EntityTestimony $testimony) {
+        $this->testimonyEntity = $testimony;
+    }
+
     /**
      * Método responsável por retornar os depoimentos
      * @param \App\Core\Http\Request $request
      * @return array
      */
-    public static function getTestimonies($request){
+    public function getTestimonies($request){
         return [
             'depoimentos' => self::getTestimonyItems($request, $obPagination),
             'pagination' => parent::getPagination($request, $obPagination)
@@ -23,12 +30,12 @@ class Testimony extends Api{
      * @param integer $id
      * @return array
      */
-    public static function getTestimony($request, $id){
+    public function getTestimony($request, $id){
 
         if(!is_numeric($id)){
             throw new \Exception("O id '".$id."' não é válido.", 400);
         }
-        $obTestimony = EntityTestimony::getTestimonyById($id);
+        $obTestimony = $this->testimonyEntity->getTestimonyById($id);
 
         //valida se existe
 
@@ -45,21 +52,20 @@ class Testimony extends Api{
             ];
     }
 
-     private static function getTestimonyItems($request, &$obPagination)
+     private function getTestimonyItems($request, &$obPagination)
     {
         $queryParams = $request->getQueryParams();
         $paginaAtual = $queryParams["page"] ?? 1;
 
-        $obTestimonyEntity = new EntityTestimony();
-        $quantidadeTotal = $obTestimonyEntity->count();
+        $quantidadeTotal = $this->testimonyEntity->count();
 
         $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
         
-         $results = $obTestimonyEntity->getTestimonies(null, "id DESC", $obPagination->getLimit());
+         $results = $this->testimonyEntity->getTestimonies(null, "id DESC", $obPagination->getLimit());
 
         $itens = [];
         foreach ($results as $testimonyData) {
-            $obTestimony = EntityTestimony::hydrate($testimonyData);
+            $obTestimony = $this->testimonyEntity->hydrate($testimonyData);
             $itens[] = [
                 "id" => (int)$obTestimony->id,
                 "nome" => $obTestimony->nome,
@@ -76,7 +82,7 @@ class Testimony extends Api{
      * Método responsável por cadastrar um novo depoimento
      * @param \App\Core\Http\Request $request
      */
-    public static function setNewTestimony($request){
+    public function setNewTestimony($request){
         $postVars = $request->getQueryParams();
 
         //valida os campos obrigatorios
@@ -86,17 +92,16 @@ class Testimony extends Api{
         }
 
         //novo depoimento
-        $obTestimony = new EntityTestimony;
-        $obTestimony->nome = $postVars['nome'];
-        $obTestimony->mensagem = $postVars['mensagem'];
-        $obTestimony->cadastrar();
+        $this->testimonyEntity->nome = $postVars['nome'];
+        $this->testimonyEntity->mensagem = $postVars['mensagem'];
+        $this->testimonyEntity->cadastrar();
 
         //retorna os detalhes do depoimento cadastrado
         return  [
-                'id' => (int)$obTestimony->id,
-                'nome' => $obTestimony->nome,
-                'mensagem' => $obTestimony->mensagem,
-                'data' => $obTestimony->data
+                'id' => (int)$this->testimonyEntity->id,
+                'nome' => $this->testimonyEntity->nome,
+                'mensagem' => $this->testimonyEntity->mensagem,
+                'data' => $this->testimonyEntity->data
             ];
     }
 
@@ -104,7 +109,7 @@ class Testimony extends Api{
      * Método responsável por  alterar um depoimento
      * @param \App\Core\Http\Request $request
      */
-    public static function setEditTestimony($request, $id){
+    public function setEditTestimony($request, $id){
         $postVars = $request->getQueryParams();
 
         //valida os campos obrigatorios
@@ -115,7 +120,7 @@ class Testimony extends Api{
 
         //buscar o depoimento
 
-        $obTestimony = EntityTestimony::getTestimonyById($id);
+        $obTestimony = $this->testimonyEntity->getTestimonyById($id);
 
         if(!$obTestimony instanceof EntityTestimony){
             throw new \Exception("O depoimento ".$id." não foi encontrado", 404);
@@ -141,11 +146,11 @@ class Testimony extends Api{
      * Método responsável por excluir um depoimento
      * @param \App\Core\Http\Request $request
      */
-    public static function setDeleteTestimony($request, $id){
+    public function setDeleteTestimony($request, $id){
 
         //buscar o depoimento
 
-        $obTestimony = EntityTestimony::getTestimonyById($id);
+        $obTestimony = $this->testimonyEntity->getTestimonyById($id);
 
         if(!$obTestimony instanceof EntityTestimony){
             throw new \Exception("O depoimento ".$id." não foi encontrado", 404);

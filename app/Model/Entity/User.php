@@ -2,7 +2,7 @@
 
 namespace App\Model\Entity;
 
-use App\Core\Container;
+use App\Core\Database\Database;
 
 class User
 {
@@ -14,10 +14,10 @@ class User
     public $email;
     public $senha;
 
-    public function __construct()
+    public function __construct(Database $database)
     {
-        $factory = Container::resolve('database.factory');
-        $this->database = $factory->create($this->table);
+        $this->database = $database;
+        $this->database->setTable($this->table);
     }
 
     public function cadastrar()
@@ -44,26 +44,24 @@ class User
         return $this->database->delete("id = {$this->id}");
     }
 
-    public static function getUserById($id)
+    public  function getUserById($id)
     {
-        $instance = new self();
-        $stmt = $instance->database->select("id = {$id}", null, '1');
+
+        $stmt = $this->database->select("id = {$id}", null, '1');
         $data = $stmt->fetch();
         return $data ? self::hydrate($data) : false;
     }
 
-    public static function getUserByEmail($email)
+    public  function getUserByEmail($email)
     {
-        $instance = new self();
-        $stmt = $instance->database->select('email = "' . $email . '"', null, '1');
+        $stmt = $this->database->select('email = "' . $email . '"', null, '1');
         $data = $stmt->fetch();
         return $data ? self::hydrate($data) : false;
     }
 
-    public static function getUsers($where = null, $order = null, $limit = null, $fields = '*')
+    public  function getUsers($where = null, $order = null, $limit = null, $fields = '*')
     {
-        $instance = new self();
-        $stmt = $instance->database->select($where, $order, $limit, $fields);
+        $stmt = $this->database->select($where, $order, $limit, $fields);
         return $stmt->fetchAll();
     }
 
@@ -74,14 +72,13 @@ class User
         return (int) ($result['total'] ?? 0);
     }
 
-    public static function hydrate(array $data)
+    public function hydrate(array $data)
     {
-        $user = new self();
-        $user->id = $data['id'] ?? null;
-        $user->nome = $data['nome'] ?? null;
-        $user->email = $data['email'] ?? null;
-        $user->senha = $data['senha'] ?? null;
-        return $user;
+        $this->id = $data['id'] ?? null;
+        $this->nome = $data['nome'] ?? null;
+        $this->email = $data['email'] ?? null;
+        $this->senha = $data['senha'] ?? null;
+        return $this;
     }
 
     public function toArray()

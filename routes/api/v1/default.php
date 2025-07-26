@@ -1,16 +1,6 @@
 <?php
-
-use \App\Core\Http\Response;
-use \App\Controller\Api;
-
+use App\Controller\Api\Api;
 
 $obRouter->get('/api/v1', [
-     'middlewares' => [
-        'api'
-    ],
-    function($request){
-        return new Response (200, Api\Api::getDetails($request), 'application/json');
-    }
+    Api::class, 'getDetails'
 ])->middleware(['api']);
-
-

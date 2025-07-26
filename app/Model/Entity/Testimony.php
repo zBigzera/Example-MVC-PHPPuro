@@ -2,7 +2,7 @@
 
 namespace App\Model\Entity;
 
-use App\Core\Container;
+use App\Core\Database\Database;
 
 class Testimony
 {
@@ -14,10 +14,10 @@ class Testimony
     public $mensagem;
     public $data;
 
-    public function __construct()
+    public function __construct(Database $database)
     {
-        $factory = Container::resolve('database.factory');
-        $this->database = $factory->create($this->table);
+        $this->database = $database;
+        $this->database->setTable($this->table);
     }
 
     public function cadastrar()
@@ -44,32 +44,32 @@ class Testimony
         return $this->database->delete("id = {$this->id}");
     }
 
-    public static function getTestimonyById($id)
+    public function getTestimonyById($id)
     {
-        $instance = new self();
-        $stmt = $instance->database->select("id = {$id}", null, '1');
-        $data = $stmt->fetch();
+        
+        $stmt = $this->database->select("id = :id", null, 1, "*", [':id'=> $id]);
+        
+        $data = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ($data) {
             return self::hydrate($data);
         }
         return false;
     }
 
-    public static function getTestimonies($where = null, $order = null, $limit = null, $fields = '*')
+    public  function getTestimonies($where = null, $order = null, $limit = null, $fields = '*')
     {
-        $instance = new self();
-        $stmt = $instance->database->select($where, $order, $limit, $fields);
+        
+        $stmt = $this->database->select($where, $order, $limit, $fields);
         return $stmt->fetchAll();
     }
 
-    public static function hydrate(array $data)
+    public function hydrate(array $data)
     {
-        $obj = new self();
-        $obj->id = $data['id'] ?? null;
-        $obj->nome = $data['nome'] ?? null;
-        $obj->mensagem = $data['mensagem'] ?? null;
-        $obj->data = $data['data'] ?? null;
-        return $obj;
+        $this->id = $data['id'] ?? null;
+        $this->nome = $data['nome'] ?? null;
+        $this->mensagem = $data['mensagem'] ?? null;
+        $this->data = $data['data'] ?? null;
+        return $this;
     }
 
     public function count($where = null)

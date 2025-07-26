@@ -1,11 +1,10 @@
 <?php
 
 use \App\Core\Http\Response;
-use \App\Controller\Admin;
-$obRouter->get('/admin',
-    function($request){
-        return new Response(200, Admin\Home::getHome($request));
-    }
-)->middleware(['require-admin-login']);
+use \App\Controller\Admin\Home;
+
+$obRouter->get("/admin", [
+    Home::class, "getHome"
+])->middleware(["require-admin-login"]);
 
 

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Core\Http\Middlewares;
+use DI\Container;
 use App\Core\Http\Request;
 use App\Core\Http\Response;
 
@@ -33,15 +34,22 @@ class QueueMiddleware {
      */
     private $controllerArgs = [];
 
+     /**
+     * Instância do container PHP-DI
+     * @var Container
+     */
+    private $container;
+
     /**
      * Método responsável por construir a classe de fila de middlewaers
      * @param array $middlewares
      * @param \Closure $controller
      * @param array $controllerArgs
      */
-    public function __construct($middlewares, $controller, $controllerArgs){
+    public function __construct($middlewares, $controller, $controllerArgs, Container $container){
         $this->middlewares = array_merge(self::$default,$middlewares);
         $this->controller = $controller;
+        $this->container = $container;
         $this->controllerArgs = $controllerArgs;
     }
 
@@ -89,7 +97,10 @@ class QueueMiddleware {
             };
 
             //Executa o middleware
-            return (new self::$map[$middleware])->handle($request, $next);
+           $middlewareClass = self::$map[$middleware];
+            $middlewareInstance = $this->container->get($middlewareClass);
+
+            return $middlewareInstance->handle($request, $next);
             
     }
         

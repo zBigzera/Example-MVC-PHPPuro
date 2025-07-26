@@ -6,24 +6,30 @@ use App\Core\View;
 use App\Model\Entity\Testimony as Entity;
 use App\Core\Database\Pagination;
 class Testimony{
+
+    private $testimonyEntity;
+
+    public function __construct(Entity $entity) {
+        $this->testimonyEntity = $entity;
+    }
+
     /**
      * Método responsável por obter a renderização dos itens de depoimentos para a página
      * @return array
      */
-    private static function getTestimonyItems($request, &$obPagination){
+    private function getTestimonyItems($request, &$obPagination){
         $queryParams = $request->getQueryParams();
         $paginaAtual = $queryParams["page"] ?? 1;
 
-        $obTestimonyEntity = new Entity();
-        $quantidadeTotal = $obTestimonyEntity->count();
+        $quantidadeTotal = $this->testimonyEntity->count();
 
         $obPagination = new Pagination($paginaAtual, 2, $quantidadeTotal);
         
-         $results = $obTestimonyEntity->getTestimonies(null, "id DESC", $obPagination->getLimit());
+         $results = $this->testimonyEntity->getTestimonies(null, "id DESC", $obPagination->getLimit());
         
         $itens = [];
         foreach($results as $testimonyData) {
-            $obTestimony = Entity::hydrate($testimonyData);
+            $obTestimony = $this->testimonyEntity->hydrate($testimonyData);
             $itens[] = [ 
            "nome" => $obTestimony->nome,
            "mensagem" => $obTestimony->mensagem,
@@ -38,7 +44,7 @@ class Testimony{
      * Método responsável por retornar o conteúdo (view)
      * @return string
      */
-    public static function getTestimonies($request){
+    public function getTestimonies($request){
 
         return View::render("site/pages/testimonies/index.twig",[ 
             'title' => 'Depoimentos',
@@ -47,15 +53,14 @@ class Testimony{
         ]);
     }
 
-    public static function insertTestimony($request){
+    public function insertTestimony($request){
        
         $postVars = $request->getPostVars();
          
-        $obTestimony = new Entity;
-        $obTestimony->nome = $postVars['nome'];
-        $obTestimony->mensagem = $postVars['mensagem'];
+        $this->testimonyEntity->nome = $postVars['nome'];
+        $this->testimonyEntity->mensagem = $postVars['mensagem'];
 
-        $obTestimony->cadastrar();
+        $this->testimonyEntity->cadastrar();
         return $request->getRouter()->redirect('/depoimentos');
     }
 }
