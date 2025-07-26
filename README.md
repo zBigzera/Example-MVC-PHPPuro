@@ -4,17 +4,8 @@ Este projeto é uma implementação simples do padrão MVC (Model-View-Controlle
 
 ## 📖 Histórico do Projeto
 
-- 🔹 **Primeira versão** (branch `WDEV`): baseada na [playlist do canal WDEV no YouTube](https://www.youtube.com/watch?v=Q0-RzIX0V2o&list=PL_zkXQGHYosGQwNkMMdhRZgm4GjspTnXs) — estrutura inicial do MVC em PHP puro.
-- 🔸 **Segunda versão**: adição do **Twig** como template engine para melhorar a organização e reutilização de views (em breve).
-- 🔺 **Versão final (main)**: diversas melhorias na estrutura, organização e legibilidade do código (em breve).
+- 🔹 **Esta versão** (branch `WDEV`): baseada na [playlist do canal WDEV no YouTube](https://www.youtube.com/watch?v=Q0-RzIX0V2o&list=PL_zkXQGHYosGQwNkMMdhRZgm4GjspTnXs) — estrutura inicial do MVC em PHP puro. Usei esta de base para melhorar o projeto nas demais branches.
 
-## 🗂 Estrutura do Projeto
-/app
-/Controllers
-/Models
-/Views
-/public
-index.php
 
 ## 📚 Conceitos Abordados
 
