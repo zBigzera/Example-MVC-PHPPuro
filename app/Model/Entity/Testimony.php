@@ -51,7 +51,7 @@ class Testimony
         
         $data = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ($data) {
-            return self::hydrate($data);
+            return $this->hydrate($data);
         }
         return false;
     }

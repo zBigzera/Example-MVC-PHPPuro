@@ -49,14 +49,14 @@ class User
 
         $stmt = $this->database->select("id = {$id}", null, '1');
         $data = $stmt->fetch();
-        return $data ? self::hydrate($data) : false;
+        return $data ? $this->hydrate($data) : false;
     }
 
     public  function getUserByEmail($email)
     {
         $stmt = $this->database->select('email = "' . $email . '"', null, '1');
         $data = $stmt->fetch();
-        return $data ? self::hydrate($data) : false;
+        return $data ? $this->hydrate($data) : false;
     }
 
     public  function getUsers($where = null, $order = null, $limit = null, $fields = '*')

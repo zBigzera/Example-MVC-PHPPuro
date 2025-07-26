@@ -11,6 +11,8 @@ class ContainerDI
     public static function buildContainer()
     {
         $containerBuilder = new ContainerBuilder();
+        // $containerBuilder->useAutowiring(true);
+        $containerBuilder->enableCompilation(__DIR__ . '/../../cache/php-di');
         $containerBuilder->addDefinitions([
             PDO::class => function () {
                 $config = [
