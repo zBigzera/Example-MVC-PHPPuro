@@ -21,12 +21,6 @@ class Database
     private $table;
 
     /**
-     * Construtor da classe Database
-     * @param string $table
-     * @param PDO|null $connection
-     */
-
-    /**
      * Última query SQL gerada
      * @var string
      */
@@ -38,43 +32,12 @@ class Database
      */
     private $lastParams = [];
 
-     public function __construct($table = null, ?PDO $connection = null)
+    public function __construct(PDO $connection, $table = null)
     {
         if ($table !== null) {
             $this->setTable($table);
         }
-
         $this->connection = $connection;
-
-        if (is_null($this->connection)) {
-            $this->setConnection();
-        }
-    }
-
-    /**
-     * Método responsável por criar uma conexão com o banco de dados
-     */
-    private function setConnection()
-    {
-        // Carregar variáveis de ambiente (ex: do arquivo .env)
-        // Você precisará configurar o carregamento do .env no seu projeto
-        // Por simplicidade, vamos usar valores fixos aqui ou você pode passar via construtor/configuração
-        $host = getenv('DB_HOST') ?: 'localhost';
-        $name = getenv('DB_NAME') ?: 'mvc_pure_php';
-        $user = getenv('DB_USER') ?: 'root';
-        $pass = getenv('DB_PASS') ?: '';
-        $port = getenv('DB_PORT') ?: 3306;
-
-        try {
-            $this->connection = new PDO(
-                'mysql:host=' . $host . ';dbname=' . $name . ';port=' . $port,
-                $user,
-                $pass
-            );
-            $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            die('ERROR: ' . $e->getMessage());
-        }
     }
 
     /**
@@ -91,7 +54,7 @@ class Database
 
         $normalizedParams = [];
         foreach ($params as $key => $value) {
-            $normalizedKey = str_starts_with($key, ':') ? $key : ':' . $key;
+            $normalizedKey = str_starts_with($key, ":") ? $key : ":" . $key;
             $normalizedParams[$normalizedKey] = $value;
         }
 
@@ -100,7 +63,7 @@ class Database
             $statement->execute($normalizedParams);
             return $statement;
         } catch (PDOException $e) {
-            die('ERROR: ' . $e->getMessage());
+            die("ERROR: " . $e->getMessage());
         }
     }
 
@@ -114,10 +77,10 @@ class Database
         //DADOS DA QUERY
         $fields = array_keys($values);
         // Usa placeholders nomeados para inserção
-        $namedPlaceholders = implode(' , ', array_map(fn($field) => ":$field", $fields));
+        $namedPlaceholders = implode(" , ", array_map(fn($field) => ":$field", $fields));
 
         //MONTA A QUERY
-        $query = 'INSERT INTO ' . $this->table . ' (' . implode(' , ', $fields) . ') VALUES (' . $namedPlaceholders . ')';
+        $query = "INSERT INTO " . $this->table . " (" . implode(" , ", $fields) . ") VALUES (" . $namedPlaceholders . ")";
 
         //EXECUTA O INSERT com array associativo
         $this->execute($query, $values);
@@ -135,13 +98,13 @@ class Database
      * @param array $params
      * @return PDOStatement
      */
-    public function select($where = null, $order = null, $limit = null, $fields = '*', $params = [])
+    public function select($where = null, $order = null, $limit = null, $fields = "*", $params = [])
     {
-        $whereClause = !empty($where) ? 'WHERE ' . $where : '';
-        $orderClause = !empty($order) ? 'ORDER BY ' . $order : '';
-        $limitClause = !empty($limit) ? 'LIMIT ' . $limit : '';
+        $whereClause = !empty($where) ? "WHERE " . $where : "";
+        $orderClause = !empty($order) ? "ORDER BY " . $order : "";
+        $limitClause = !empty($limit) ? "LIMIT " . $limit : "";
 
-        $query = 'SELECT ' . $fields . ' FROM ' . $this->table . ' ' . $whereClause . ' ' . $orderClause . ' ' . $limitClause;
+        $query = "SELECT " . $fields . " FROM " . $this->table . " " . $whereClause . " " . $orderClause . " " . $limitClause;
 
         return $this->execute($query, $params);
     }
@@ -159,10 +122,10 @@ class Database
         $fields = array_keys($values);
 
         // Monta a cláusula SET com placeholders nomeados, evitando conflito com parâmetros do WHERE
-        $setClause = implode(' , ', array_map(fn($field) => "$field = :set_$field", $fields));
+        $setClause = implode(" , ", array_map(fn($field) => "$field = :set_$field", $fields));
 
         // Monta a query final
-        $query = 'UPDATE ' . $this->table . ' SET ' . $setClause . ' WHERE ' . $where;
+        $query = "UPDATE " . $this->table . " SET " . $setClause . " WHERE " . $where;
 
         // Renomeia os parâmetros de SET com prefixo "set_" para evitar conflitos com o WHERE
         $setParams = [];
@@ -186,7 +149,7 @@ class Database
     public function delete($where, $params = [])
     {
         //MONTA A QUERY
-        $query = 'DELETE FROM ' . $this->table . ' WHERE ' . $where;
+        $query = "DELETE FROM " . $this->table . " WHERE " . $where;
 
         //EXECUTA A QUERY
         $this->execute($query, $params);
@@ -211,7 +174,7 @@ class Database
    public function setTable(string $table)
     {
         // Proteção contra table injection
-        if (!preg_match('/^[a-zA-Z0-9_]+$/', $table)) {
+        if (!preg_match("/^[a-zA-Z0-9_]+$/", $table)) {
             throw new \InvalidArgumentException("Invalid table name: $table");
         }
         $this->table = $table;
@@ -267,3 +230,5 @@ class Database
     }
 
 }
+
+

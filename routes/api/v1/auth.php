@@ -1,13 +1,6 @@
 <?php
-
-use \App\Core\Http\Response;
-use \App\Controller\Api;
-
+use \App\Controller\Api\Auth;
 
 $obRouter->post('/api/v1/auth', [
-    function($request){
-        return new Response (201, Api\Auth::generateToken($request), 'application/json');
-    }
+    Auth::class, 'generateToken'
 ])->middleware(['api']);
-
-

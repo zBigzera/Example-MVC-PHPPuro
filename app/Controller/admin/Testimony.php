@@ -8,22 +8,28 @@ use App\Core\Database\Pagination;
 
 class Testimony extends Page
 {
-    private static function getTestimonyItems($request, &$obPagination)
+     private $testimonyEntity;
+
+    public function __construct(Entity $testimonyEntity)
+    {
+        $this->testimonyEntity = $testimonyEntity;
+    }
+    
+    private function getTestimonyItems($request, &$obPagination)
     {
         $queryParams = $request->getQueryParams();
         $paginaAtual = $queryParams["page"] ?? 1;
 
-        $obTestimonyEntity = new Entity();
-        $quantidadeTotal = $obTestimonyEntity->count();
+        $quantidadeTotal = $this->testimonyEntity->count();
 
         $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
         
-        $results = $obTestimonyEntity->getTestimonies(null, "id DESC", $obPagination->getLimit());
+         $results = $this->testimonyEntity->getTestimonies(null, "id DESC", $obPagination->getLimit());
 
 
         $itens = [];
         foreach ($results as $testimonyData) {
-            $obTestimony = Entity::hydrate($testimonyData);
+            $obTestimony = $this->testimonyEntity->hydrate($testimonyData);
             $itens[] = [
                 "id" => $obTestimony->id,
                 "nome" => $obTestimony->nome,
@@ -34,11 +40,11 @@ class Testimony extends Page
 
         return $itens;
     }
-    public static function getTestimonies($request)
+    public function getTestimonies($request)
     {
         return parent::render('admin/pages/testimonies/index.twig', [
             'title' => 'Depoimentos',
-            'itens' => self::getTestimonyItems($request, $obPagination),
+            'itens' => $this->getTestimonyItems($request, $obPagination),
             'pagination' => $obPagination->getPagination($request->getFullUrl(),'page'),
             'status' => self::getStatus($request)
         ], 'testimonies');
@@ -49,7 +55,7 @@ class Testimony extends Page
      * @param \App\Core\Http\Request $request
      * @return string
      */
-    public static function getNewTestimony($request)
+    public function getNewTestimony($request)
     {
         return parent::render('admin/pages/testimonies/form.twig', [
             'title' => 'Cadastrar depoimento',
@@ -64,20 +70,19 @@ class Testimony extends Page
      * Método responsável por cadastrar um novo depoimento
      * @param \App\Core\Http\Request $request
      */
-    public static function setNewTestimony($request)
+    public function setNewTestimony($request)
     {
 
         $postVars = $request->getPostVars();
 
         //nova instância de depoimento
 
-        $obTestimony = new Entity;
-        $obTestimony->nome = $postVars['nome'] ?? '';
-        $obTestimony->mensagem = $postVars['mensagem'] ?? '';
-        $obTestimony->cadastrar();
-        
+        $this->testimonyEntity->nome = $postVars['nome'] ?? '';
+        $this->testimonyEntity->mensagem = $postVars['mensagem'] ?? '';
+         $this->testimonyEntity->cadastrar();
 
-        $request->getRouter()->redirect('/admin/testimonies/'.$obTestimony->id.'/edit?status=created');
+
+        $request->getRouter()->redirect('/admin/testimonies/'. $this->testimonyEntity->id.'/edit?status=created');
     }
 
 
@@ -111,11 +116,12 @@ class Testimony extends Page
      * @param integer $id
      * @return string
      */
-     public static function getEditTestimony($request, $id)
+     public function getEditTestimony($request, $id)
     {
         //Obtém o depoimento do DB
-        $obTestimony = Entity::getTestimonyById($id);
-
+      
+        $obTestimony =  $this->testimonyEntity->getTestimonyById($id);
+ 
         if(!$obTestimony instanceof Entity){
             $request->getRouter()->redirect('/admin/testimonies');
         }
@@ -134,11 +140,10 @@ class Testimony extends Page
      * @param \App\Core\Http\Request $request
      * @param integer $id
      */
-     public static function setEditTestimony($request, $id)
+     public function setEditTestimony($request, $id)
     {
         //Obtém o depoimento do DB
-        $obTestimony = Entity::getTestimonyById($id);
-
+        $obTestimony =  $this->testimonyEntity->getTestimonyById($id);
         if(!$obTestimony instanceof Entity){
             $request->getRouter()->redirect('/admin/testimonies');
         }
@@ -161,10 +166,10 @@ class Testimony extends Page
      * @param integer $id
      * @return string
      */
-     public static function getDeleteTestimony($request, $id)
+     public function getDeleteTestimony($request, $id)
     {
         //Obtém o depoimento do DB
-        $obTestimony = Entity::getTestimonyById($id);
+        $obTestimony =  $this->testimonyEntity->getTestimonyById($id);
 
         if(!$obTestimony instanceof Entity){
             $request->getRouter()->redirect('/admin/testimonies');
@@ -182,10 +187,10 @@ class Testimony extends Page
      * @param \App\Core\Http\Request $request
      * @param integer $id
      */
-     public static function setDeleteTestimony($request, $id)
+     public function setDeleteTestimony($request, $id)
     {
         //Obtém o depoimento do DB
-        $obTestimony = Entity::getTestimonyById($id);
+        $obTestimony =  $this->testimonyEntity->getTestimonyById($id);
 
         if(!$obTestimony instanceof Entity){
             $request->getRouter()->redirect('/admin/testimonies');

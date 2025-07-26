@@ -1,38 +1,29 @@
 <?php
 
-use \App\Core\Http\Response;
-use \App\Controller\Api;
+use App\Controller\Api\Testimony;
 
+// Rotas públicas com cache
 $obRouter->group(['api', 'cache'], function($obRouter) {
     $obRouter->get('/api/v1/testimonies', [
-        function($request){
-            return new Response(200, Api\Testimony::getTestimonies($request), 'application/json');
-        }
+        Testimony::class, 'getTestimonies'
     ]);
 
     $obRouter->get('/api/v1/testimonies/{id}/', [
-        function($request, $id){
-            return new Response(200, Api\Testimony::getTestimony($request, (int)$id), 'application/json');
-        }
+        Testimony::class, 'getTestimony'
     ]);
 });
 
+// Rotas protegidas com autenticação básica
 $obRouter->group(['api', 'user-basic-auth'], function($obRouter) {
     $obRouter->post('/api/v1/testimonies/', [
-        function($request){
-            return new Response(201, Api\Testimony::setNewTestimony($request), 'application/json');
-        }
+        Testimony::class, 'setNewTestimony'
     ]);
 
     $obRouter->put('/api/v1/testimonies/{id}', [
-        function($request, $id){
-            return new Response(200, Api\Testimony::setEditTestimony($request, $id), 'application/json');
-        }
+        Testimony::class, 'setEditTestimony'
     ]);
 
     $obRouter->delete('/api/v1/testimonies/{id}', [
-        function($request, $id){
-            return new Response(200, Api\Testimony::setDeleteTestimony($request, $id), 'application/json');
-        }
+        Testimony::class, 'setDeleteTestimony'
     ]);
 });

@@ -5,14 +5,20 @@ namespace App\Controller\Api;
 use App\Model\Entity\User as EntityUser;
 use App\Core\Database\Pagination;
 class User extends Api{
+
+    private $user;
+
+    public function __construct(EntityUser $user) {
+        $this->user = $user;
+    }
     /**
      * Método responsável por retornar os usuários
      * @param \App\Core\Http\Request $request
      * @return array
      */
-    public static function getUsers($request){
+    public function getUsers($request){
         return [
-            'usuarios' => self::getUserItems($request, $obPagination),
+            'usuarios' => $this->getUserItems($request, $obPagination),
             'pagination' => parent::getPagination($request, $obPagination)
         ];
     }
@@ -23,7 +29,7 @@ class User extends Api{
      * @param \App\Core\Http\Request $request
      * @return array
      */
-    public static function getCurrentUser($request){
+    public function getCurrentUser($request){
         
         $obUser = $request->user;
 
@@ -40,12 +46,12 @@ class User extends Api{
      * @param integer $id
      * @return array
      */
-    public static function getUser($request, $id){
+    public function getUser($request, $id){
 
         if(!is_numeric($id)){
             throw new \Exception("O id '".$id."' não é válido.", 400);
         }
-        $obUser = EntityUser::getUserById($id);
+        $obUser = $this->user->getUserById($id);
 
         //valida se existe
 
@@ -61,21 +67,20 @@ class User extends Api{
             ];
     }
 
-     private static function getUserItems($request, &$obPagination)
+     private function getUserItems($request, &$obPagination)
     {
         $queryParams = $request->getQueryParams();
         $paginaAtual = $queryParams["page"] ?? 1;
 
-        $obUserEntity = new EntityUser();
-        $quantidadeTotal = $obUserEntity->count();
+        $quantidadeTotal = $this->user->count();
 
         $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
 
-        $results = $obUserEntity->getUsers(null, "id DESC", $obPagination->getLimit());
+        $results = $this->user->getUsers(null, "id DESC", $obPagination->getLimit());
 
         $itens = [];
         foreach ($results as $userData) {
-            $obUser = EntityUser::hydrate($userData);
+            $obUser = $this->user->hydrate($userData);
             $itens[] = [
                 "id" => (int)$obUser->id,
                 "nome" => $obUser->nome,
@@ -91,7 +96,7 @@ class User extends Api{
      * Método responsável por cadastrar um novo usuário
      * @param \App\Core\Http\Request $request
      */
-    public static function setNewUser($request){
+    public function setNewUser($request){
         $postVars = $request->getQueryParams();
 
         //valida os campos obrigatorios
@@ -101,26 +106,25 @@ class User extends Api{
         }
 
         //novo usuário
-        $obUserEmail = EntityUser::getUserByEmail($postVars['email']);
+        $obUserEmail = $this->user->getUserByEmail($postVars['email']);
 
         if($obUserEmail instanceof EntityUser){
             throw new \Exception("O e-mail '".$postVars['email']."' já esta em uso", 400);
         }
 
   
-        $obUser = new EntityUser;
-        $obUser->nome = $postVars['nome'];
-        $obUser->email = $postVars['email'];
-        $obUser->senha = password_hash($postVars['senha'], PASSWORD_DEFAULT);
+        $this->user->nome = $postVars['nome'];
+        $this->user->email = $postVars['email'];
+        $this->user->senha = password_hash($postVars['senha'], PASSWORD_DEFAULT);
     
-        $obUser->cadastrar();
+        $this->user->cadastrar();
 
         //retorna os detalhes do usuário cadastrado
         return  [
-                'id' => (int)$obUser->id,
-                'nome' => $obUser->nome,
-                'email' => $obUser->email,
-                'senha' => $obUser->senha
+                'id' => (int)$this->user->id,
+                'nome' => $this->user->nome,
+                'email' => $this->user->email,
+                'senha' => $this->user->senha
             ];
     }
 
@@ -128,7 +132,7 @@ class User extends Api{
      * Método responsável por  alterar um usuário
      * @param \App\Core\Http\Request $request
      */
-    public static function setEditUser($request, $id){
+    public function setEditUser($request, $id){
         $postVars = $request->getQueryParams();
 
         //valida os campos obrigatorios
@@ -139,13 +143,13 @@ class User extends Api{
 
         //buscar o usuário
 
-        $obUser = EntityUser::getUserById($id);
+        $obUser = $this->user->getUserById($id);
 
         if(!$obUser instanceof EntityUser){
             throw new \Exception("O usuário ".$id." não foi encontrado", 404);
         }
 
-        $obUserEmail = EntityUser::getUserByEmail($postVars['email']);
+        $obUserEmail = $this->user->getUserByEmail($postVars['email']);
 
         if($obUserEmail instanceof EntityUser && $obUserEmail->id != $obUser->id){
             throw new \Exception("O e-mail '".$postVars['email']."' já esta em uso", 400);
@@ -170,11 +174,11 @@ class User extends Api{
      * Método responsável por excluir um usuário
      * @param \App\Core\Http\Request $request
      */
-    public static function setDeleteUser($request, $id){
+    public function setDeleteUser($request, $id){
 
         //buscar o usuário
 
-        $obUser = EntityUser::getUserById($id);
+        $obUser = $this->user->getUserById($id);
 
         if(!$obUser instanceof EntityUser){
             throw new \Exception("O usuário ".$id." não foi encontrado", 404);

@@ -9,7 +9,11 @@ use Firebase\JWT\Key;
 
 class JWTAuth{
 
-
+    private $user;
+    public function __construct(User $user) {
+        $this->user = $user;
+    }
+    
     /**
      * Método resposnável por retornar uma instância de usuário autenticado
      * @return mixed
@@ -31,7 +35,7 @@ class JWTAuth{
 
         $email = $decoded->email ?? '';
 
-        $obUser = User::getUserByEmail($email);
+        $obUser = $this->user->getUserByEmail($email);
 
         
         return $obUser instanceof User ? $obUser : false;

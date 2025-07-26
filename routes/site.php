@@ -1,37 +1,13 @@
 <?php
+use \App\Controller\Site\Home;
+use \App\Controller\Site\About;
+use \App\Controller\Site\Testimony;
 
-use \App\Core\Http\Response;
-use \App\Controller\Site;
-
-$obRouter->get('/', [
-    function(){
-        return new Response(200, Site\Home::getHome());
-    }
-]);
+$obRouter->get('/', [Home::class, 'getHome']);
 
 $obRouter->group(['cache'], function($obRouter) {
-    $obRouter->get('/sobre', [
-        function(){
-            return new Response(200, Site\About::getAbout());
-        }
-    ]);
-    
-    $obRouter->post('/depoimentos', [
-        function($request){
-            return new Response(200, Site\Testimony::insertTestimony($request));
-        }
-    ]);
+    $obRouter->get('/sobre', [About::class, 'getAbout']);
+    $obRouter->post('/depoimentos', [Testimony::class, 'insertTestimony']);
 });
 
-$obRouter->get('/depoimentos', [
-    function($request){
-        return new Response(200, Site\Testimony::getTestimonies($request));
-    }
-]);
-
-//Rota dinâmica (comentada)
-// $obRouter->get('/pagina/{idPagina}',[
-//     function($idPagina){
-//         return new Response(200, 'Página '.$idPagina);
-//     }
-// ]);
+$obRouter->get('/depoimentos', [Testimony::class, 'getTestimonies']);
