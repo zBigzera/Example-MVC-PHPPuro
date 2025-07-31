@@ -10,7 +10,7 @@ Este projeto é uma implementação simples do padrão MVC (Model-View-Controlle
   
   🔺 Versão anterior (branch `fat-model`): diversas melhorias na estrutura, organização e legibilidade do código, uso de singleton para conexão com o banco de dados, uso de PHP-DI para injeção de dependências, versão recomendada para projetos reais, mas ainda sofre de sobrecarga na model.
   
-  ⭐ Versão principal (branch `main`): Diminuição da sobrecarga da model com MVC Layered, adicionando camadas SIMPLES de abstração.
+  ⭐ Versão principal (branch `main`): Diminuição da sobrecarga da model com MVC Layered, adicionando camadas SIMPLES de abstração como Dto/DAO/Service.
 
 ## 📚 Conceitos Abordados
 
