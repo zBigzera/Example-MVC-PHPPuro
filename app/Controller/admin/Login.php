@@ -2,18 +2,20 @@
 
 namespace App\Controller\Admin;
 use App\Core\View;
-use App\Model\Entity\User;
+use App\Model\Service\UserService;
+use App\Model\DTO\UserDTO;
+
 use App\Core\Http\Request;
 Use App\Session\Admin\AdminLogin as SessionAdminlogin;
 Use App\Controller\Admin\Alert;
 
 class Login extends Page{
 
-    private $userEntity;
+    private $userService;
 
-    public function __construct(User $userEntity)
+    public function __construct(UserService $user)
     {
-        $this->userEntity = $userEntity;
+        $this->userService = $user;
     }
 
 
@@ -24,7 +26,6 @@ class Login extends Page{
      * @return string
      */
     public function getLogin($request, $errorMessage = null){
-
 
     $status = !is_null($errorMessage) ? Alert::getError($errorMessage) : '';
     
@@ -41,28 +42,20 @@ class Login extends Page{
      */
     public function setLogin($request){
         $postVars = $request->getPostVars();
-
         $email = $postVars['email'] ?? '';
         $senha = $postVars['password'] ?? '';
 
-        //busca o usuário pelo e-mail
-        $obUser = $this->userEntity->getUserByEmail($email);
 
-        if(!$obUser instanceof User){
+        $obUser = $this->userService->login($email, $senha);
+      
+        if(!$obUser){
             return self::getLogin($request, 'E-mail ou senha inválidos.');
         }
 
-        //verifica a senha do usuário
-        if(!password_verify($senha, $obUser->senha)){
-            return $this->getLogin($request, 'E-mail ou senha inválidos.');
-        }           
-
-        //cria sa sessão de login
         SessionAdminlogin::login($obUser);
-
-        //Redireciona para home/admin
         $request->getRouter()->redirect('/admin/');
     }
+
 
     /**
      * Método resposável por deslogar o usuário

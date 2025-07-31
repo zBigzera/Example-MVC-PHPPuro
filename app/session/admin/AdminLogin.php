@@ -2,6 +2,7 @@
 
 namespace App\Session\Admin;
 
+use App\Model\DTO\UserDTO;
 class AdminLogin{
     /**
      * Método responsável por iniciar a sessão
@@ -15,10 +16,10 @@ class AdminLogin{
     }
     /**
      * Método responsável por criar o login do usuário
-     * @param \App\Model\Entity\User $obUser
+     * @param UserDTO $obUser
      * @return boolean
      */
-    public static function login($obUser){
+    public static function login(UserDTO $obUser): bool{
         self::init();
 
     

@@ -1,64 +1,50 @@
 <?php
 
 namespace App\Core\Http\Middlewares;
+
 use App\Core\Http\Request;
 use App\Core\Http\Response;
-use App\Model\Entity\User;
+use App\Model\Service\UserService;
+use App\Model\DTO\UserDTO;
 
-class UserBasicAuth{
-    
-    private $user;
+class UserBasicAuth
+{
+    private $userService;
 
-    public function __construct(User $user) {
-        $this->user = $user;
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
     }
-    /**
-     * Método resposnável por retornar uma instância de usuário autenticado
-     * @return mixed
-     */
-    private function getBasicAuthUser(){
-        //Verifica a existência dos dados de acesso
-        if(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])){
+
+    private function getBasicAuthUser()
+    {
+        if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
             return false;
         }
 
-        $obUser = $this->user->getUserByEmail($_SERVER['PHP_AUTH_USER']);
+        $userDTO = $this->userService->getUserByEmail($_SERVER['PHP_AUTH_USER']);
 
-        //verifica a instância
-        if(!$obUser instanceof User){
+        if (!$userDTO instanceof UserDTO) {
             return false;
         }
 
-
-        return password_verify($_SERVER['PHP_AUTH_PW'], $obUser->senha) ? $obUser : false;
+        return password_verify($_SERVER['PHP_AUTH_PW'], $userDTO->senha) ? $userDTO : false;
     }
 
-    /**
-     * Método responsável por validar o acesso via HTTP BASIC AUTH
-     * @param \App\Core\Http\Request $request
-     */
-    private function basicAuth($request){
-        //verifica o usuário recebido
-        if($obUser = $this->getBasicAuthUser()){
-            $request->user = $obUser;
+    private function basicAuth($request)
+    {
+        if ($user = $this->getBasicAuthUser()) {
+            $request->user = $user;
             return true;
         }
 
         throw new \Exception("Usuário ou senha inválidos", 403);
     }
-    /**
-     * Método responsável por executaro middleware
-     * @param Request $request
-     * @param Closure $next
-     * @return Response
-     */
-    public function handle($request, $next){
 
-        //Realiza a validação do acesso via basic auth
-
+    public function handle($request, $next)
+    {
         $this->basicAuth($request);
-        
+
         return $next($request);
     }
-
 }

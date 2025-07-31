@@ -3,16 +3,17 @@
 namespace App\Controller\Admin;
 
 use App\Core\Http\Request;
-use App\Model\Entity\User as Entity;
+use App\Model\DTO\UserDTO as UserDto;
+use App\Model\Service\UserService;
 use App\Core\Database\Pagination;
 
 class User extends Page
 {
-    private $obUserEntity;
+    private $userService;
 
-    public function __construct(Entity $obuser)
+    public function __construct(UserService $userService)
     {
-        $this->obUserEntity = $obuser;
+        $this->userService = $userService;
     }
 
     private function getUserItems($request, &$obPagination)
@@ -20,41 +21,35 @@ class User extends Page
         $queryParams = $request->getQueryParams();
         $paginaAtual = $queryParams["page"] ?? 1;
 
-        $quantidadeTotal = $this->obUserEntity->count();
+        $itemsPerPage = 5;
 
-        $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
-
-        $results = $this->obUserEntity->getUsers(null, "id DESC", $obPagination->getLimit());
+        $result = $this->userService->getUsers(null, "id DESC", $paginaAtual, $itemsPerPage);
+        
+        $obPagination = $result['pagination'];
+        $users = $result['data'];
 
         $itens = [];
-        foreach ($results as $userData) {
-            $obUser = $this->obUserEntity->hydrate($userData);
+        foreach ($users as $userDTO) {
             $itens[] = [
-                "id" => $obUser->id,
-                "nome" => $obUser->nome,
-                "email" => $obUser->email,
+                "id" => $userDTO->id,
+                "nome" => $userDTO->nome,
+                "email" => $userDTO->email,
             ];
         }
 
         return $itens;
     }
+
     public function getUsers($request)
     {
-
         return parent::render('admin/pages/users/index.twig', [
             'title' => 'Usuários',
             'itens' => $this->getUserItems($request, $obPagination),
             'pagination' => $obPagination->getPagination($request->getFullUrl(), 'page'),
             'status' => self::getStatus($request)
         ], 'users');
-
     }
 
-    /**
-     * Método responsável por retornar o formulário de cadastro de um novo usuário
-     * @param \App\Core\Http\Request $request
-     * @return string
-     */
     public function getNewUser($request)
     {
         return parent::render('admin/pages/users/form.twig', [
@@ -65,39 +60,28 @@ class User extends Page
         ], 'users');
     }
 
-    /**
-     * Método responsável por cadastrar um novo usuário
-     * @param \App\Core\Http\Request $request
-     */
     public function setNewUser($request)
     {
-
         $postVars = $request->getPostVars();
 
-        $email = $postVars['email'];
-
-        //Verifica se o e-mail ja existe
-        $obUser = $this->obUserEntity->getUserByEmail($email);
-        if ($obUser instanceof Entity) {
+        // Verifica duplicidade
+        if ($this->userService->getUserByEmail($postVars['email'] ?? '') instanceof UserDto) {
             $request->getRouter()->redirect('/admin/users/new/?status=duplicated');
         }
-        //nova instância de usuário
 
-        $this->obUserEntity->nome = $postVars['nome'] ?? '';
-        $this->obUserEntity->email = $postVars['email'] ?? '';
-        $this->obUserEntity->senha = password_hash($postVars['senha'], PASSWORD_DEFAULT) ?? '';
-        $this->obUserEntity->cadastrar();
+        $senha = password_hash($postVars['senha'] ?? '', PASSWORD_DEFAULT);
 
-
-        $request->getRouter()->redirect('/admin/users/' . $this->obUserEntity->id . '/edit?status=created');
+        $userDTO = UserDto::fromArray([
+                    'id' => null,
+                    'nome' => $postVars['nome'] ?? '',
+                    'email' => $postVars['email'] ?? '',
+                    'senha' => $senha
+                ]);
+        $user = $this->userService->createUser($userDTO);
+              
+        $request->getRouter()->redirect('/admin/users/' . $user . '/edit?status=created');
     }
 
-
-    /**
-     * Método responsável por retonar a mensagem de status
-     * @param Request $request
-     * @return string
-     */
     private static function getStatus($request)
     {
         $queryParams = $request->getQueryParams();
@@ -106,112 +90,83 @@ class User extends Page
             return '';
 
         switch ($queryParams['status']) {
-            case 'created': {
-                return Alert::getSuccess('Usuário criado com sucesso!');
-            }
-            case 'updated': {
-                return Alert::getSuccess("Usuário editado com sucesso!");
-            }
-            case 'deleted': {
-                return Alert::getSuccess("Usuário deletado com sucecsso!");
-            }
-            case 'duplicated': {
-                return Alert::getError("O e-mail digitado já esta sendo utilizado por outro usuário.");
-            }
+            case 'created': return Alert::getSuccess('Usuário criado com sucesso!');
+            case 'updated': return Alert::getSuccess("Usuário editado com sucesso!");
+            case 'deleted': return Alert::getSuccess("Usuário deletado com sucesso!");
+            case 'duplicated': return Alert::getError("O e-mail digitado já está sendo utilizado por outro usuário.");
         }
 
         return '';
     }
-    /**
-     * Método responsável por retornar o formulário de edição de um usuário
-     * @param \App\Core\Http\Request $request
-     * @param integer $id
-     * @return string
-     */
+
     public function getEditUser($request, $id)
     {
-        //Obtém o usuário do DB
-        $obUser = $this->obUserEntity->getUserById($id);
+        $userDTO = $this->userService->getUserById($id);
 
-        if (!$obUser instanceof Entity) {
+        if (!$userDTO instanceof UserDTO) {
             $request->getRouter()->redirect('/admin/users');
         }
 
         return parent::render('admin/pages/users/form.twig', [
             'title' => 'Editar usuário',
-            'nome' => $obUser->nome,
-            'email' => $obUser->email,
+            'nome' => $userDTO->nome,
+            'email' => $userDTO->email,
             'status' => self::getStatus($request)
         ], 'users');
     }
 
-    /**
-     * Método responsável por atualizar um usuário
-     * @param \App\Core\Http\Request $request
-     * @param integer $id
-     */
     public function setEditUser($request, $id)
     {
-        //Obtém o usuário do DB
-        $obUser = $this->obUserEntity->getUserById($id);
+        $userDTO = $this->userService->getUserById($id);
 
-        if (!$obUser instanceof Entity) {
+        if (!$userDTO instanceof UserDTO) {
             $request->getRouter()->redirect('/admin/users');
         }
 
         $postVars = $request->getPostVars();
+
         $email = $postVars['email'] ?? '';
-        $obUserMail = $this->obUserEntity->getUserByEmail($email);
-        if ($obUserMail instanceof Entity && $obUserMail->id != $id) {
+        $userByEmail = $this->userService->getUserByEmail($email);
+
+        if ($userByEmail instanceof UserDTO && $userByEmail->id != $id) {
             $request->getRouter()->redirect('/admin/users/' . $id . '/edit?status=duplicated');
         }
-        //atualiza a instância
-        $obUser->nome = $postVars['nome'] ?? $obUser->nome;
-        $obUser->email = $postVars['email'] ?? $obUser->email;
-        $obUser->senha = password_hash($postVars['senha'], PASSWORD_DEFAULT) ?? $obUser->senha;
 
-        $obUser->atualizar();
+        // Atualiza DTO
+        $userDTO->nome = $postVars['nome'] ?? $userDTO->nome;
+        $userDTO->email = $postVars['email'] ?? $userDTO->email;
+        if (!empty($postVars['senha'])) {
+            $userDTO->senha = password_hash($postVars['senha'], PASSWORD_DEFAULT);
+        }
 
-        $request->getRouter()->redirect('/admin/users/' . $obUser->id . '/edit?status=updated');
+        $this->userService->updateUser($userDTO);
+
+        $request->getRouter()->redirect('/admin/users/' . $userDTO->id . '/edit?status=updated');
     }
 
-
-    /**
-     * Método responsável retornar o form de exclusão de um usuário
-     * @param \App\Core\Http\Request $request
-     * @param integer $id
-     * @return string
-     */
     public function getDeleteUser($request, $id)
     {
-        //Obtém o usuário do DB
-        $obUser = $this->obUserEntity->getUserById($id);
+        $userDTO = $this->userService->getUserById($id);
 
-        if (!$obUser instanceof Entity) {
+        if (!$userDTO instanceof UserDTO) {
             $request->getRouter()->redirect('/admin/users');
         }
 
         return parent::render('admin/pages/users/delete.twig', [
-            'nome' => $obUser->nome,
-            'email' => $obUser->email,
+            'nome' => $userDTO->nome,
+            'email' => $userDTO->email,
         ], 'users');
     }
 
-    /**
-     * Método responsável por excluir um usuário
-     * @param \App\Core\Http\Request $request
-     * @param integer $id
-     */
     public function setDeleteUser($request, $id)
     {
-        //Obtém o usuário do DB
-        $obUser = $this->obUserEntity->getUserById($id);
+        $userDTO = $this->userService->getUserById($id);
 
-        if (!$obUser instanceof Entity) {
+        if (!$userDTO instanceof UserDTO) {
             $request->getRouter()->redirect('/admin/users');
         }
 
-        $obUser->excluir();
+        $this->userService->deleteUser($id);
 
         $request->getRouter()->redirect('/admin/users/?status=deleted');
     }

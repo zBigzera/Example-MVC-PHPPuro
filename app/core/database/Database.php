@@ -14,11 +14,6 @@ class Database
      */
     private $connection;
 
-    /**
-     * Nome da tabela a ser manipulada
-     * @var string
-     */
-    private $table;
 
     /**
      * Última query SQL gerada
@@ -32,11 +27,8 @@ class Database
      */
     private $lastParams = [];
 
-    public function __construct(PDO $connection, $table = null)
+    public function __construct(PDO $connection)
     {
-        if ($table !== null) {
-            $this->setTable($table);
-        }
         $this->connection = $connection;
     }
 
@@ -72,7 +64,7 @@ class Database
      * @param array $values [ field => value ]
      * @return integer ID inserido
      */
-     public function insert($values)
+     public function insert($table, $values)
     {
         //DADOS DA QUERY
         $fields = array_keys($values);
@@ -80,7 +72,7 @@ class Database
         $namedPlaceholders = implode(" , ", array_map(fn($field) => ":$field", $fields));
 
         //MONTA A QUERY
-        $query = "INSERT INTO " . $this->table . " (" . implode(" , ", $fields) . ") VALUES (" . $namedPlaceholders . ")";
+        $query = "INSERT INTO " . $table . " (" . implode(" , ", $fields) . ") VALUES (" . $namedPlaceholders . ")";
 
         //EXECUTA O INSERT com array associativo
         $this->execute($query, $values);
@@ -98,13 +90,13 @@ class Database
      * @param array $params
      * @return PDOStatement
      */
-    public function select($where = null, $order = null, $limit = null, $fields = "*", $params = [])
+    public function select($table, $where = null, $order = null, $limit = null, $fields = "*", $params = [])
     {
         $whereClause = !empty($where) ? "WHERE " . $where : "";
         $orderClause = !empty($order) ? "ORDER BY " . $order : "";
         $limitClause = !empty($limit) ? "LIMIT " . $limit : "";
 
-        $query = "SELECT " . $fields . " FROM " . $this->table . " " . $whereClause . " " . $orderClause . " " . $limitClause;
+        $query = "SELECT " . $fields . " FROM " . $table . " " . $whereClause . " " . $orderClause . " " . $limitClause;
 
         return $this->execute($query, $params);
     }
@@ -116,7 +108,7 @@ class Database
      * @param array $params
      * @return boolean
      */
-    public function update($where, $values, $params = [])
+    public function update($table, $where, $values, $params = [])
     {
         // Extrai os campos que serão atualizados
         $fields = array_keys($values);
@@ -125,7 +117,7 @@ class Database
         $setClause = implode(" , ", array_map(fn($field) => "$field = :set_$field", $fields));
 
         // Monta a query final
-        $query = "UPDATE " . $this->table . " SET " . $setClause . " WHERE " . $where;
+        $query = "UPDATE " . $table . " SET " . $setClause . " WHERE " . $where;
 
         // Renomeia os parâmetros de SET com prefixo "set_" para evitar conflitos com o WHERE
         $setParams = [];
@@ -146,10 +138,10 @@ class Database
      * @param array $params
      * @return boolean
      */
-    public function delete($where, $params = [])
+    public function delete($table, $where, $params = [])
     {
         //MONTA A QUERY
-        $query = "DELETE FROM " . $this->table . " WHERE " . $where;
+        $query = "DELETE FROM " . $table . " WHERE " . $where;
 
         //EXECUTA A QUERY
         $this->execute($query, $params);
@@ -165,19 +157,6 @@ class Database
     public function getConnection()
     {
         return $this->connection;
-    }
-
-    /**
-     * Define a tabela a ser manipulada
-     * @param string $table
-     */
-   public function setTable(string $table)
-    {
-        // Proteção contra table injection
-        if (!preg_match("/^[a-zA-Z0-9_]+$/", $table)) {
-            throw new \InvalidArgumentException("Invalid table name: $table");
-        }
-        $this->table = $table;
     }
 
     /**

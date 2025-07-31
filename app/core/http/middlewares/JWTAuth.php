@@ -1,72 +1,54 @@
 <?php
 
 namespace App\Core\Http\Middlewares;
+
 use App\Core\Http\Request;
 use App\Core\Http\Response;
-use App\Model\Entity\User;
+use App\Model\Service\UserService;
+use App\Model\DTO\UserDTO;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-class JWTAuth{
+class JWTAuth
+{
+    private $userService;
 
-    private $user;
-    public function __construct(User $user) {
-        $this->user = $user;
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
     }
-    
-    /**
-     * Método resposnável por retornar uma instância de usuário autenticado
-     * @return mixed
-     */
-    private function getJWTAuthUser($request){
-        //headers
 
+    private function getJWTAuthUser(Request $request)
+    {
         $headers = $request->getHeaders();
-        
-        //token puro
         $jwt = isset($headers['Authorization']) ? str_replace('Bearer ', '', $headers['Authorization']) : '';
 
-        try{
+        try {
             $decoded = JWT::decode($jwt, new Key(getenv('JWT_KEY'), 'HS256'));
-        }catch(\Exception $e){
-            throw new \Exception("Token inválido",403);
+        } catch (\Exception $e) {
+            throw new \Exception("Token inválido", 403);
         }
-      
 
         $email = $decoded->email ?? '';
 
-        $obUser = $this->user->getUserByEmail($email);
+        $userDTO = $this->userService->getUserByEmail($email);
 
-        
-        return $obUser instanceof User ? $obUser : false;
+        return $userDTO instanceof UserDTO ? $userDTO : false;
     }
 
-    /**
-     * Método responsável por validar o acesso via HTTP BASIC AUTH
-     * @param \App\Core\Http\Request $request
-     */
-    private function Auth($request){
-        //verifica o usuário recebido
-        if($obUser = $this->getJWTAuthUser($request)){
-            $request->user = $obUser;
+    private function auth(Request $request)
+    {
+        if ($user = $this->getJWTAuthUser($request)) {
+            $request->user = $user;
             return true;
         }
 
         throw new \Exception("Acesso negado", 403);
     }
-    /**
-     * Método responsável por executaro middleware
-     * @param Request $request
-     * @param Closure $next
-     * @return Response
-     */
-    public function handle($request, $next){
 
-        //Realiza a validação do acesso via jwt
-
+    public function handle(Request $request, $next)
+    {
         $this->auth($request);
-        
         return $next($request);
     }
-
 }

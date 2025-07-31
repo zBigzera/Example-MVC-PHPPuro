@@ -15,7 +15,7 @@ if (!function_exists('getallheaders')) {
 }
 
 use App\Core\Http\Router;
-use App\Model\Entity\User as UserModel;
+use App\Model\Dto\UserDTO as userDto;
 class Request
 {
 
@@ -61,9 +61,9 @@ class Request
 
     /**
      * Usuário autenticado
-     * @var UserModel
+     * @var userDto
      */
-    public UserModel $user;
+    public userDto $user;
 
     public function __construct($router)
     {

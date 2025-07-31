@@ -2,194 +2,153 @@
 
 namespace App\Controller\Api;
 
-use App\Model\Entity\User as EntityUser;
 use App\Core\Database\Pagination;
-class User extends Api{
+use App\Core\Http\Request;
+use App\Model\Dto\UserDTO;
+use App\Model\Service\UserService;
 
-    private $user;
+class User extends Api
+{
+    private $userService;
 
-    public function __construct(EntityUser $user) {
-        $this->user = $user;
+    public function __construct(UserService $service)
+    {
+        $this->userService = $service;
     }
-    /**
-     * Método responsável por retornar os usuários
-     * @param \App\Core\Http\Request $request
-     * @return array
-     */
-    public function getUsers($request){
+
+    public function getUsers($request)
+    {
         return [
             'usuarios' => $this->getUserItems($request, $obPagination),
             'pagination' => parent::getPagination($request, $obPagination)
         ];
     }
 
-
-    /**
-     * Método responsável por retornar o usuário atualmente conectado
-     * @param \App\Core\Http\Request $request
-     * @return array
-     */
-    public function getCurrentUser($request){
-        
+    public function getCurrentUser($request)
+    {
         $obUser = $request->user;
 
-        return  [
-                'id' => (int)$obUser->id,
-                'nome' => $obUser->nome,
-                'email' => $obUser->email
+        return [
+            'id' => (int)$obUser->id,
+            'nome' => $obUser->nome,
+            'email' => $obUser->email
         ];
     }
 
-    /**
-     * Método responsável por retornar os detalhes de um usuário
-     * @param \App\Core\Http\Request $request
-     * @param integer $id
-     * @return array
-     */
-    public function getUser($request, $id){
-
-        if(!is_numeric($id)){
+    public function getUser($request, $id)
+    {
+        if (!is_numeric($id)) {
             throw new \Exception("O id '".$id."' não é válido.", 400);
         }
-        $obUser = $this->user->getUserById($id);
 
-        //valida se existe
+        $userDTO = $this->userService->getUserById($id);
 
-        if(!$obUser instanceof EntityUser){
+        if (!$userDTO instanceof UserDTO) {
             throw new \Exception("O usuário ".$id." não foi encontrado", 404);
         }
 
-        //retorna os detalhes do usuário
-        return  [
-                'id' => (int)$obUser->id,
-                'nome' => $obUser->nome,
-                'email' => $obUser->email
-            ];
+        return [
+            'id' => (int)$userDTO->id,
+            'nome' => $userDTO->nome,
+            'email' => $userDTO->email
+        ];
     }
 
-     private function getUserItems($request, &$obPagination)
+    private function getUserItems($request, &$obPagination)
     {
         $queryParams = $request->getQueryParams();
         $paginaAtual = $queryParams["page"] ?? 1;
 
-        $quantidadeTotal = $this->user->count();
+        $result = $this->userService->getUsers(null, "id DESC", $paginaAtual, 5);
 
-        $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
-
-        $results = $this->user->getUsers(null, "id DESC", $obPagination->getLimit());
+        $obPagination = $result['pagination'];
+        $users = $result['data'];
 
         $itens = [];
-        foreach ($results as $userData) {
-            $obUser = $this->user->hydrate($userData);
+        foreach ($users as $userDTO) {
             $itens[] = [
-                "id" => (int)$obUser->id,
-                "nome" => $obUser->nome,
-                "email" => $obUser->email
+                'id' => (int)$userDTO->id,
+                'nome' => $userDTO->nome,
+                'email' => $userDTO->email
             ];
         }
-
 
         return $itens;
     }
 
-    /**
-     * Método responsável por cadastrar um novo usuário
-     * @param \App\Core\Http\Request $request
-     */
-    public function setNewUser($request){
-        $postVars = $request->getQueryParams();
+    public function setNewUser($request)
+    {
+        $postVars = $request->getPostVars();
 
-        //valida os campos obrigatorios
-
-        if(!isset($postVars['nome']) || !isset($postVars['email']) || !isset($postVars['senha'])){
+        if (!isset($postVars['nome'], $postVars['email'], $postVars['senha'])) {
             throw new \Exception("Os campos 'nome', 'email' e 'senha' são obrigatórios", 400);
         }
 
-        //novo usuário
-        $obUserEmail = $this->user->getUserByEmail($postVars['email']);
-
-        if($obUserEmail instanceof EntityUser){
-            throw new \Exception("O e-mail '".$postVars['email']."' já esta em uso", 400);
+        if ($this->userService->getUserByEmail($postVars['email']) instanceof UserDTO) {
+            throw new \Exception("O e-mail '".$postVars['email']."' já está em uso", 400);
         }
 
-  
-        $this->user->nome = $postVars['nome'];
-        $this->user->email = $postVars['email'];
-        $this->user->senha = password_hash($postVars['senha'], PASSWORD_DEFAULT);
-    
-        $this->user->cadastrar();
+        $userDTO = UserDTO::fromArray([
+            'id' => null,
+            'nome' => $postVars['nome'],
+            'email' => $postVars['email'],
+            'senha' => password_hash($postVars['senha'], PASSWORD_DEFAULT)
+        ]);
 
-        //retorna os detalhes do usuário cadastrado
-        return  [
-                'id' => (int)$this->user->id,
-                'nome' => $this->user->nome,
-                'email' => $this->user->email,
-                'senha' => $this->user->senha
-            ];
+        $this->userService->createUser($userDTO);
+
+        return [
+            'id' => (int)$userDTO->id,
+            'nome' => $userDTO->nome,
+            'email' => $userDTO->email
+        ];
     }
 
-     /**
-     * Método responsável por  alterar um usuário
-     * @param \App\Core\Http\Request $request
-     */
-    public function setEditUser($request, $id){
-        $postVars = $request->getQueryParams();
-
-        //valida os campos obrigatorios
-
-        if(!isset($postVars['nome']) || !isset($postVars['email'])){
+    public function setEditUser($request, $id)
+    {
+        //envia no body da requisição
+        $postVars = $request->getPostVars();
+     
+        if (!isset($postVars['nome'], $postVars['email'])) {
             throw new \Exception("Os campos 'nome' e 'email' são obrigatórios", 400);
         }
 
-        //buscar o usuário
-
-        $obUser = $this->user->getUserById($id);
-
-        if(!$obUser instanceof EntityUser){
+        $userDTO = $this->userService->getUserById($id);
+        if (!$userDTO instanceof UserDTO) {
             throw new \Exception("O usuário ".$id." não foi encontrado", 404);
         }
 
-        $obUserEmail = $this->user->getUserByEmail($postVars['email']);
-
-        if($obUserEmail instanceof EntityUser && $obUserEmail->id != $obUser->id){
-            throw new \Exception("O e-mail '".$postVars['email']."' já esta em uso", 400);
+        $userByEmail = $this->userService->getUserByEmail($postVars['email']);
+        if ($userByEmail instanceof UserDTO && $userByEmail->id != $userDTO->id) {
+            throw new \Exception("O e-mail '".$postVars['email']."' já está em uso", 400);
         }
 
+        $userDTO->nome = $postVars['nome'];
+        $userDTO->email = $postVars['email'];
 
-        //novo usuário
-        $obUser->nome = $postVars['nome'];
-        $obUser->email = $postVars['email'];
-        $obUser->atualizar();
+        if (!empty($postVars['senha'])) {
+            $userDTO->senha = password_hash($postVars['senha'], PASSWORD_DEFAULT);
+        }
 
-        //retorna os detalhes do usuário atualizado
-        return  [
-                'id' => (int)$obUser->id,
-                'nome' => $obUser->nome,
-                'email' => $obUser->email,
-            ];
+        $this->userService->updateUser($userDTO);
+
+        return [
+            'id' => (int)$userDTO->id,
+            'nome' => $userDTO->nome,
+            'email' => $userDTO->email
+        ];
     }
-  
 
-    /**
-     * Método responsável por excluir um usuário
-     * @param \App\Core\Http\Request $request
-     */
-    public function setDeleteUser($request, $id){
+    public function setDeleteUser($request, $id)
+    {
+        $userDTO = $this->userService->getUserById($id);
 
-        //buscar o usuário
-
-        $obUser = $this->user->getUserById($id);
-
-        if(!$obUser instanceof EntityUser){
+        if (!$userDTO instanceof UserDTO) {
             throw new \Exception("O usuário ".$id." não foi encontrado", 404);
         }
 
+        $this->userService->deleteUser($id);
 
-        $obUser->excluir();
-
-        //retorna os detalhes do usuário atualizado
-        return  [
-                'sucesso' => true
-            ];
+        return ['sucesso' => true];
     }
 }

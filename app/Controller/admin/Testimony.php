@@ -3,16 +3,18 @@
 namespace App\Controller\Admin;
 
 use App\Core\Http\Request;
-use App\Model\Entity\Testimony as Entity;
-use App\Core\Database\Pagination;
+use App\Core\View;
+use App\Model\Service\TestimonyService as Service;
+use App\Model\Dto\TestimonyDTO as Dto;
+
 
 class Testimony extends Page
 {
-     private $testimonyEntity;
+    private $testimonyService;
 
-    public function __construct(Entity $testimonyEntity)
+    public function __construct(Service $service)
     {
-        $this->testimonyEntity = $testimonyEntity;
+        $this->testimonyService = $service;
     }
     
     private function getTestimonyItems($request, &$obPagination)
@@ -20,26 +22,23 @@ class Testimony extends Page
         $queryParams = $request->getQueryParams();
         $paginaAtual = $queryParams["page"] ?? 1;
 
-        $quantidadeTotal = $this->testimonyEntity->count();
+        $result = $this->testimonyService->getTestimonies(null, "id DESC", $paginaAtual, 5);
 
-        $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
-        
-         $results = $this->testimonyEntity->getTestimonies(null, "id DESC", $obPagination->getLimit());
-
+        $obPagination = $result['pagination'];
 
         $itens = [];
-        foreach ($results as $testimonyData) {
-            $obTestimony = $this->testimonyEntity->hydrate($testimonyData);
+        foreach ($result['data'] as $dto) {
             $itens[] = [
-                "id" => $obTestimony->id,
-                "nome" => $obTestimony->nome,
-                "mensagem" => $obTestimony->mensagem,
-                "data" => date("d/m/Y H:i:s", strtotime($obTestimony->data))
+                "id" => $dto->id,
+                "nome" => $dto->nome,
+                "mensagem" => $dto->mensagem,
+                "data" => date("d/m/Y H:i:s", strtotime($dto->data))
             ];
         }
 
         return $itens;
     }
+
     public function getTestimonies($request)
     {
         return parent::render('admin/pages/testimonies/index.twig', [
@@ -50,11 +49,6 @@ class Testimony extends Page
         ], 'testimonies');
     }
 
-    /**
-     * Método responsável por retornar o formulário de cadastro de um novo depoimento
-     * @param \App\Core\Http\Request $request
-     * @return string
-     */
     public function getNewTestimony($request)
     {
         return parent::render('admin/pages/testimonies/form.twig', [
@@ -63,141 +57,108 @@ class Testimony extends Page
             'mensagem' => '',
             'status' => ''
         ], 'testimonies');
-
     }
 
-      /**
-     * Método responsável por cadastrar um novo depoimento
-     * @param \App\Core\Http\Request $request
-     */
     public function setNewTestimony($request)
     {
-
         $postVars = $request->getPostVars();
 
-        //nova instância de depoimento
+        $testimonyDTO = Dto::fromArray([
+            'id' => null,
+            'nome' => $postVars['nome'] ?? '',
+            'mensagem' => $postVars['mensagem'] ?? '',
+            'data' => date('Y-m-d H:i:s')
+        ]);
 
-        $this->testimonyEntity->nome = $postVars['nome'] ?? '';
-        $this->testimonyEntity->mensagem = $postVars['mensagem'] ?? '';
-         $this->testimonyEntity->cadastrar();
-
-
-        $request->getRouter()->redirect('/admin/testimonies/'. $this->testimonyEntity->id.'/edit?status=created');
+        try {
+            $this->testimonyService->createTestimony($testimonyDTO);
+            return $request->getRouter()->redirect('/admin/testimonies?status=created');
+        } catch (\InvalidArgumentException $e) {
+            return $request->getRouter()->redirect('/admin/testimonies/new?errors=' . urlencode($e->getMessage()));
+        } catch (\Exception $e) {
+            return $request->getRouter()->redirect('/admin/testimonies/new?errors=' . urlencode('Erro inesperado: ' . $e->getMessage()));
+        }
     }
 
-
-    /**
-     * Método responsável por retonar a mensagem de status
-     * @param Request $request
-     * @return string
-     */
-    private static function getStatus($request){
+    private static function getStatus($request)
+    {
         $queryParams = $request->getQueryParams();
 
         if(!isset($queryParams['status'])) return '';
 
         switch($queryParams['status']){
-            case 'created': { 
-                return Alert::getSuccess('Depoimento criado com sucesso!');
-            }
-            case 'updated':{
-                return Alert::getSuccess("Depoimento editado com sucesso!");
-            }
-            case 'deleted':{
-                return Alert::getSuccess("Depoimento deletado com sucecsso!");
-            }
+            case 'created': return Alert::getSuccess('Depoimento criado com sucesso!');
+            case 'updated': return Alert::getSuccess('Depoimento editado com sucesso!');
+            case 'deleted': return Alert::getSuccess('Depoimento deletado com sucesso!');
         }
 
         return '';
     }
-     /**
-     * Método responsável por retornar o formulário de edição de um depoimento
-     * @param \App\Core\Http\Request $request
-     * @param integer $id
-     * @return string
-     */
-     public function getEditTestimony($request, $id)
+
+    public function getEditTestimony($request, $id)
     {
-        //Obtém o depoimento do DB
-      
-        $obTestimony =  $this->testimonyEntity->getTestimonyById($id);
- 
-        if(!$obTestimony instanceof Entity){
-            $request->getRouter()->redirect('/admin/testimonies');
+        $dto = $this->testimonyService->getTestimonyById($id);
+
+        if (!$dto instanceof Dto) {
+            return $request->getRouter()->redirect('/admin/testimonies');
         }
-      
+
         return parent::render('admin/pages/testimonies/form.twig', [
             'title' => 'Editar depoimento',
-            'nome' => $obTestimony->nome,
-            'mensagem'=> $obTestimony->mensagem,
+            'nome' => $dto->nome,
+            'mensagem'=> $dto->mensagem,
             'status' => self::getStatus($request)
         ], 'testimonies');
-
     }
 
-    /**
-     * Método responsável por atualizar um depoimento
-     * @param \App\Core\Http\Request $request
-     * @param integer $id
-     */
-     public function setEditTestimony($request, $id)
+    public function setEditTestimony($request, $id)
     {
-        //Obtém o depoimento do DB
-        $obTestimony =  $this->testimonyEntity->getTestimonyById($id);
-        if(!$obTestimony instanceof Entity){
-            $request->getRouter()->redirect('/admin/testimonies');
+        $dto = $this->testimonyService->getTestimonyById($id);
+
+        if (!$dto instanceof Dto) {
+            return $request->getRouter()->redirect('/admin/testimonies');
         }
-      
+
         $postVars = $request->getPostVars();
 
-        //atualiza a instância
-        $obTestimony->nome = $postVars['nome'] ?? $obTestimony->nome;
-        $obTestimony->mensagem = $postVars['mensagem'] ?? $obTestimony->mensagem;
+        $dto->nome = $postVars['nome'] ?? $dto->nome;
+        $dto->mensagem = $postVars['mensagem'] ?? $dto->mensagem;
 
-        $obTestimony->atualizar();
-
-        $request->getRouter()->redirect('/admin/testimonies/'.$obTestimony->id.'/edit?status=updated');
+        try {
+            $this->testimonyService->updateTestimony($dto);
+            return $request->getRouter()->redirect("/admin/testimonies/{$id}/edit?status=updated");
+        } catch (\Exception $e) {
+            return $request->getRouter()->redirect("/admin/testimonies/{$id}/edit?errors=" . urlencode('Erro ao atualizar: ' . $e->getMessage()));
+        }
     }
 
-
-     /**
-     * Método responsável retornar o form de exclusão de um depoimento
-     * @param \App\Core\Http\Request $request
-     * @param integer $id
-     * @return string
-     */
-     public function getDeleteTestimony($request, $id)
+    public function getDeleteTestimony($request, $id)
     {
-        //Obtém o depoimento do DB
-        $obTestimony =  $this->testimonyEntity->getTestimonyById($id);
+        $dto = $this->testimonyService->getTestimonyById($id);
 
-        if(!$obTestimony instanceof Entity){
-            $request->getRouter()->redirect('/admin/testimonies');
+        if (!$dto instanceof Dto) {
+            return $request->getRouter()->redirect('/admin/testimonies');
         }
-      
-      return parent::render('admin/pages/testimonies/delete.twig', [
-            'nome' => $obTestimony->nome,
-            'mensagem'=> $obTestimony->mensagem,
+
+        return parent::render('admin/pages/testimonies/delete.twig', [
+            'nome' => $dto->nome,
+            'mensagem'=> $dto->mensagem,
         ], 'testimonies');
-
     }
 
-     /**
-     * Método responsável por excluir um depoimento
-     * @param \App\Core\Http\Request $request
-     * @param integer $id
-     */
-     public function setDeleteTestimony($request, $id)
+    public function setDeleteTestimony($request, $id)
     {
-        //Obtém o depoimento do DB
-        $obTestimony =  $this->testimonyEntity->getTestimonyById($id);
+        $dto = $this->testimonyService->getTestimonyById($id);
 
-        if(!$obTestimony instanceof Entity){
-            $request->getRouter()->redirect('/admin/testimonies');
+        if (!$dto instanceof Dto) {
+            return $request->getRouter()->redirect('/admin/testimonies');
         }
 
-        $obTestimony->excluir();
-
-        $request->getRouter()->redirect('/admin/testimonies/?status=deleted');
+        try {
+            $this->testimonyService->deleteTestimony($id);
+            return $request->getRouter()->redirect('/admin/testimonies?status=deleted');
+        } catch (\Exception $e) {
+            return $request->getRouter()->redirect('/admin/testimonies?errors=' . urlencode('Erro ao deletar: ' . $e->getMessage()));
+        }
     }
 }

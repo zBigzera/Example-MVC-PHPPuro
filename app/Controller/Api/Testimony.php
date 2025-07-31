@@ -2,166 +2,132 @@
 
 namespace App\Controller\Api;
 
-use App\Model\Entity\Testimony as EntityTestimony;
+use App\Model\Service\TestimonyService as Service;
+use App\Model\Dto\TestimonyDTO as Dto;
 use App\Core\Database\Pagination;
-class Testimony extends Api{
+use App\Core\Http\Request;
 
-    private $testimonyEntity;
+class Testimony extends Api
+{
+    private $testimonyService;
 
-    public function __construct(EntityTestimony $testimony) {
-        $this->testimonyEntity = $testimony;
+    public function __construct(Service $service)
+    {
+        $this->testimonyService = $service;
     }
 
-    /**
-     * Método responsável por retornar os depoimentos
-     * @param \App\Core\Http\Request $request
-     * @return array
-     */
-    public function getTestimonies($request){
+    public function getTestimonies($request)
+    {
         return [
-            'depoimentos' => self::getTestimonyItems($request, $obPagination),
+            'depoimentos' => $this->getTestimonyItems($request, $obPagination),
             'pagination' => parent::getPagination($request, $obPagination)
         ];
     }
 
-    /**
-     * Método responsável por retornar os detalhes de um depoimento
-     * @param \App\Core\Http\Request $request
-     * @param integer $id
-     * @return array
-     */
-    public function getTestimony($request, $id){
-
-        if(!is_numeric($id)){
+    public function getTestimony($request, $id)
+    {
+        if (!is_numeric($id)) {
             throw new \Exception("O id '".$id."' não é válido.", 400);
         }
-        $obTestimony = $this->testimonyEntity->getTestimonyById($id);
 
-        //valida se existe
+        $dto = $this->testimonyService->getTestimonyById($id);
 
-        if(!$obTestimony instanceof EntityTestimony){
+        if (!$dto instanceof Dto) {
             throw new \Exception("O depoimento ".$id." não foi encontrado", 404);
         }
 
-        //retorna os detalhes do depoimento
-        return  [
-                'id' => (int)$obTestimony->id,
-                'nome' => $obTestimony->nome,
-                'mensagem' => $obTestimony->mensagem,
-                'data' => $obTestimony->data
-            ];
+        return [
+            'id' => (int)$dto->id,
+            'nome' => $dto->nome,
+            'mensagem' => $dto->mensagem,
+            'data' => $dto->data
+        ];
     }
 
-     private function getTestimonyItems($request, &$obPagination)
+    private function getTestimonyItems($request, &$obPagination)
     {
         $queryParams = $request->getQueryParams();
         $paginaAtual = $queryParams["page"] ?? 1;
 
-        $quantidadeTotal = $this->testimonyEntity->count();
+        $result = $this->testimonyService->getTestimonies(null, "id DESC", $paginaAtual, 5);
 
-        $obPagination = new Pagination($paginaAtual, 5, $quantidadeTotal);
-        
-         $results = $this->testimonyEntity->getTestimonies(null, "id DESC", $obPagination->getLimit());
+        $obPagination = $result['pagination'];
 
         $itens = [];
-        foreach ($results as $testimonyData) {
-            $obTestimony = $this->testimonyEntity->hydrate($testimonyData);
+        foreach ($result['data'] as $dto) {
             $itens[] = [
-                "id" => (int)$obTestimony->id,
-                "nome" => $obTestimony->nome,
-                "mensagem" => $obTestimony->mensagem,
-                "data" => $obTestimony->data
+                'id' => (int)$dto->id,
+                'nome' => $dto->nome,
+                'mensagem' => $dto->mensagem,
+                'data' => $dto->data
             ];
         }
-
 
         return $itens;
     }
 
-    /**
-     * Método responsável por cadastrar um novo depoimento
-     * @param \App\Core\Http\Request $request
-     */
-    public function setNewTestimony($request){
-        $postVars = $request->getQueryParams();
+    public function setNewTestimony($request)
+    {
+        $postVars = $request->getPostVars();
 
-        //valida os campos obrigatorios
-
-        if(!isset($postVars['nome']) || !isset($postVars['mensagem'])){
+        if (!isset($postVars['nome']) || !isset($postVars['mensagem'])) {
             throw new \Exception("Os campos 'nome' e 'mensagem' são obrigatórios", 400);
         }
 
-        //novo depoimento
-        $this->testimonyEntity->nome = $postVars['nome'];
-        $this->testimonyEntity->mensagem = $postVars['mensagem'];
-        $this->testimonyEntity->cadastrar();
+        $dto = Dto::fromArray([
+            'id' => null,
+            'nome' => $postVars['nome'],
+            'mensagem' => $postVars['mensagem'],
+            'data' => date('Y-m-d H:i:s')
+        ]);
 
-        //retorna os detalhes do depoimento cadastrado
-        return  [
-                'id' => (int)$this->testimonyEntity->id,
-                'nome' => $this->testimonyEntity->nome,
-                'mensagem' => $this->testimonyEntity->mensagem,
-                'data' => $this->testimonyEntity->data
-            ];
+        $this->testimonyService->createTestimony($dto);
+
+        return [
+            'id' => (int)$dto->id,
+            'nome' => $dto->nome,
+            'mensagem' => $dto->mensagem,
+            'data' => $dto->data
+        ];
     }
 
-     /**
-     * Método responsável por  alterar um depoimento
-     * @param \App\Core\Http\Request $request
-     */
-    public function setEditTestimony($request, $id){
-        $postVars = $request->getQueryParams();
+    public function setEditTestimony($request, $id)
+    {
+        $postVars = $request->getPostVars();
 
-        //valida os campos obrigatorios
-
-        if(!isset($postVars['nome']) || !isset($postVars['mensagem'])){
+        if (!isset($postVars['nome']) || !isset($postVars['mensagem'])) {
             throw new \Exception("Os campos 'nome' e 'mensagem' são obrigatórios", 400);
         }
 
-        //buscar o depoimento
+        $dto = $this->testimonyService->getTestimonyById($id);
 
-        $obTestimony = $this->testimonyEntity->getTestimonyById($id);
-
-        if(!$obTestimony instanceof EntityTestimony){
+        if (!$dto instanceof Dto) {
             throw new \Exception("O depoimento ".$id." não foi encontrado", 404);
         }
 
+        $dto->nome = $postVars['nome'];
+        $dto->mensagem = $postVars['mensagem'];
 
-        //novo depoimento
-        $obTestimony->nome = $postVars['nome'];
-        $obTestimony->mensagem = $postVars['mensagem'];
-        $obTestimony->atualizar();
+        $this->testimonyService->updateTestimony($dto);
 
-        //retorna os detalhes do depoimento atualizado
-        return  [
-                'id' => (int)$obTestimony->id,
-                'nome' => $obTestimony->nome,
-                'mensagem' => $obTestimony->mensagem,
-                'data' => $obTestimony->data
-            ];
+        return [
+            'id' => (int)$dto->id,
+            'nome' => $dto->nome,
+            'mensagem' => $dto->mensagem,
+            'data' => $dto->data
+        ];
     }
-  
 
-    /**
-     * Método responsável por excluir um depoimento
-     * @param \App\Core\Http\Request $request
-     */
-    public function setDeleteTestimony($request, $id){
+    public function setDeleteTestimony($request, $id)
+    {
+        $dto = $this->testimonyService->getTestimonyById($id);
 
-        //buscar o depoimento
-
-        $obTestimony = $this->testimonyEntity->getTestimonyById($id);
-
-        if(!$obTestimony instanceof EntityTestimony){
+        if (!$dto instanceof Dto) {
             throw new \Exception("O depoimento ".$id." não foi encontrado", 404);
         }
 
+        $this->testimonyService->deleteTestimony($id);
 
-        $obTestimony->excluir();
-
-        //retorna os detalhes do depoimento atualizado
-        return  [
-                'sucesso' => true
-            ];
+        return ['sucesso' => true];
     }
 }
