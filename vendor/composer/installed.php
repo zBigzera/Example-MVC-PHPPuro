@@ -3,7 +3,7 @@
         'name' => 'santarosa/mvc',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '0b56f860860de341b172d82bdb7bf977ccdcc09f',
+        'reference' => 'e62d41a9cf28a2889872274e32c794f2d40ca54c',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -64,7 +64,7 @@
         'santarosa/mvc' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '0b56f860860de341b172d82bdb7bf977ccdcc09f',
+            'reference' => 'e62d41a9cf28a2889872274e32c794f2d40ca54c',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
