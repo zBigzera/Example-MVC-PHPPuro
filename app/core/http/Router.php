@@ -28,6 +28,12 @@ class Router
     private $routes = [];
 
     /**
+     * Estrutura Trie para armazenamento de rotas
+     * @var array
+     */
+    private $trie = [];
+
+    /**
      * Instância de Request
      * @var Request
      */
@@ -127,26 +133,31 @@ class Router
         //Middlewares da rota (inclui middlewares de grupo)
         $params["middlewares"] = array_merge($this->groupMiddlewares, $params["middlewares"] ?? []);
 
-        //Variáveis da rota
-        $params["variables"] = [];
+        // Normaliza a rota removendo barras extras e dividindo em segmentos
+        $normalizedRoute = trim($route, '/');
+        $segments = explode('/', $normalizedRoute);
 
-        //Padrão de validação das variáveis das rotas
-        $patternVariable = "/{(.*?)}/";
-        if (preg_match_all($patternVariable, $route, $matches)) {
-            $route = preg_replace($patternVariable, "(.*?)", $route);
-            $params["variables"] = $matches[1];
+        $currentNode = &$this->trie;
+        $paramNames = [];
+
+        foreach ($segments as $segment) {
+            if (str_starts_with($segment, '{') && str_ends_with($segment, '}')) {
+                // É um parâmetro dinâmico
+                $paramName = trim($segment, '{}');
+                $segment = '*'; // Usar um curinga para parâmetros
+                $paramNames[] = $paramName;
+            }
+            if (!isset($currentNode[$segment])) {
+                $currentNode[$segment] = [];
+            }
+            $currentNode = &$currentNode[$segment];
         }
 
-        //Padrão de validação da URL
-        $patternRoute = '/^' . str_replace('/', '\/', rtrim($route, '/')) . '\/?$/';
+        // Armazena os detalhes da rota no nó final da Trie
+        $currentNode['__routes__'][$method] = array_merge($params, ['variables' => $paramNames]);
 
-
-
-        //Adiciona a rota dentro da classe
-        $this->routes[$patternRoute][$method] = $params;
-
-        //Retorna uma instância de Route para permitir método fluente
-        return new Route($this, $patternRoute, $method);
+        // Retorna uma instância de Route para permitir método fluente
+        return new Route($this, $route, $method);
     }
 
     /**
@@ -158,9 +169,24 @@ class Router
      */
     public function addMiddlewaresToRoute($pattern, $method, $middlewares)
     {
-        if (isset($this->routes[$pattern][$method])) {
-            $this->routes[$pattern][$method]["middlewares"] = array_merge(
-                $this->routes[$pattern][$method]["middlewares"],
+        $normalizedRoute = trim($pattern, '/');
+        $segments = explode('/', $normalizedRoute);
+
+        $currentNode = &$this->trie;
+        foreach ($segments as $segment) {
+            if (str_starts_with($segment, '{') && str_ends_with($segment, '}')) {
+                $segment = '*';
+            }
+            if (!isset($currentNode[$segment])) {
+                // Rota não encontrada na Trie, não pode adicionar middlewares
+                return;
+            }
+            $currentNode = &$currentNode[$segment];
+        }
+
+        if (isset($currentNode['__routes__'][$method])) {
+            $currentNode['__routes__'][$method]['middlewares'] = array_merge(
+                $currentNode['__routes__'][$method]['middlewares'] ?? [],
                 is_array($middlewares) ? $middlewares : [$middlewares]
             );
         }
@@ -257,28 +283,44 @@ class Router
         //Method
         $httpMethod = $this->request->getHttpMethod();
 
-        //Validar as rotas
-        foreach ($this->routes as $patternRoute => $methods) {
+        $normalizedUri = trim($uri, '/');
+        $segments = explode('/', $normalizedUri);
 
-            if (preg_match($patternRoute, $uri, $matches)) {
-                //verificar o método
-                if (isset($methods[$httpMethod])) {
-                    //Removo a primeira posição
-                    unset($matches[0]);
+        $currentNode = $this->trie;
+        $pathVariables = [];
+        $matchedRoute = null;
 
-                    //variáveis processadas
-                    $keys = $methods[$httpMethod]["variables"];
-                    $methods[$httpMethod]["variables"] = array_combine($keys, $matches);
-                    $methods[$httpMethod]["variables"]["request"] = $this->request;
-
-                    return $methods[$httpMethod];
-                }
-
-                throw new Exception("Método não permitido", 405);
+        foreach ($segments as $segment) {
+            if (isset($currentNode[$segment])) {
+                $currentNode = $currentNode[$segment];
+            } elseif (isset($currentNode['*'])) {
+                // Encontrou um curinga, armazena o valor do segmento
+                $pathVariables[] = $segment;
+                $currentNode = $currentNode['*'];
+            } else {
+                throw new Exception("URL não encontrada", 404);
             }
         }
 
-        throw new Exception("URL não encontrada", 404);
+        // Verifica se há uma rota definida para o método HTTP no nó final
+        if (isset($currentNode['__routes__'][$httpMethod])) {
+            $matchedRoute = $currentNode['__routes__'][$httpMethod];
+
+            // Mapeia os valores capturados para os nomes das variáveis
+            $variables = [];
+            if (isset($matchedRoute['variables'])) {
+                foreach ($matchedRoute['variables'] as $index => $paramName) {
+                    if (isset($pathVariables[$index])) {
+                        $variables[$paramName] = $pathVariables[$index];
+                    }
+                }
+            }
+            $matchedRoute['variables'] = array_merge($variables, ['request' => $this->request]);
+
+            return $matchedRoute;
+        }
+
+        throw new Exception("Método não permitido", 405);
     }
 
     /**
@@ -297,10 +339,7 @@ class Router
             $controller = $route["controller"];
             $variables = $route["variables"] ?? [];
 
-            // Para o MiddlewareQueue, passamos o controller e os argumentos
-            // Mas vamos usar o container->call para resolver os argumentos e chamar no final da fila.
-
-            // Criamos uma função anônima para passar para o MiddlewareQueue,
+            // função anônima para passar para o MiddlewareQueue,
             // que quando executada chama o controller com DI e rota
             $callable = function () use ($controller, $variables) {
                 $result = $this->container->call($controller, $variables);
