@@ -3,6 +3,6 @@ $container = require __DIR__."/bootstrap/app.php";
 use App\Core\Http\Router;
 $obRouter = new Router(URL, $container);
 
-include __DIR__ . "/routes/routes.php";
+includeAll(__DIR__ . '/routes/', $obRouter);
 
 $obRouter->run()->sendResponse();

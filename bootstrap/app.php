@@ -20,14 +20,23 @@ $container = ContainerDI::buildContainer();
 date_default_timezone_set(getenv("TIMEZONE") ?: 'America/Sao_Paulo');
 
 // Definição da URL
-$urlFromEnv = getenv('URL') ?: null;
+// Definição da URL
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
-if ($urlFromEnv) {
-    define('URL', rtrim($urlFromEnv, '/'));
-} else {
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    define('URL', $scheme . '://' . $host);
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+
+define('URL', $scheme . '://' . $host);
+
+function includeAll($dir, $obRouter) {
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS)
+    );
+
+    foreach ($iterator as $file) {
+        if ($file->isFile() && strtolower(pathinfo($file->getFilename(), PATHINFO_EXTENSION)) === 'php') {
+            include $file->getPathname();
+        }
+    }
 }
 
 // Inicializa a View com a URL
