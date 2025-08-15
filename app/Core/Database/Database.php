@@ -55,8 +55,12 @@ class Database
             $statement->execute($normalizedParams);
             return $statement;
         } catch (PDOException $e) {
-            die("ERROR: " . $e->getMessage());
-        }
+        // Exibe query + params + erro para depurar
+        echo "SQL Error: " . $e->getMessage() . "\n";
+        echo "Query: " . $this->lastQuery . "\n";
+        echo "Params: " . print_r($this->lastParams, true) . "\n";
+        die();
+    }
     }
 
     /**
